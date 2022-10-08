@@ -4,12 +4,12 @@ import { generateUUID } from "three/src/math/MathUtils";
 import { Ball } from "./ball";
 import { initBoundingBoxes, initMap } from "./map";
 import { Network } from "./network";
-import { PacketDie, PacketRemoveTank, PacketSetName } from "./packets";
+import { PacketDie, PacketKill, PacketRemoveTank, PacketSetName } from "./packets";
 import { Ranking } from "./ranking";
 import { Tank } from "./tank";
 
 export const TPS = 30
-export const MOVE_SPEED = 0.3
+export const MOVE_SPEED = 0.5
 export const GRAVITY = -0.5
 const ADDRESS = `ws://${location.hostname}:8080`
 const BALL_DELAY = 250
@@ -44,7 +44,7 @@ export class Game {
     public theTank: Tank | undefined
     public remoteTanks: Array<Tank> = []
 
-    private keys = { "w": false, "s": false, "space": false, "c": false, "left": false }
+    private keys = { "w": false, "s": false, "space": false, "c": false, "left": false, "a": false, "d": false, "r": false }
     public mouseX = 0
     public mouseY = 0
 
@@ -145,9 +145,9 @@ export class Game {
         this.network.send(new PacketDie())
         this.network.send(new PacketRemoveTank())
         this.alive = false
+        this.theTank!.randomPos()
         setTimeout(() => {
             this.alive = true
-            this.theTank!.randomPos()
         }, RESPAWN);
     }
 

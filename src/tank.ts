@@ -26,8 +26,12 @@ export class Tank {
         const rotation = this.getRotation()
         if (game.getKeys().w)
             this.move(-MOVE_SPEED * Math.sin(rotation.y), -MOVE_SPEED * Math.cos(rotation.y))
+        if (game.getKeys().a)
+            this.move(0.5 * -MOVE_SPEED * Math.cos(rotation.y), 0.5 * MOVE_SPEED * Math.sin(rotation.y))
         if (game.getKeys().s)
             this.move(MOVE_SPEED * Math.sin(rotation.y), MOVE_SPEED * Math.cos(rotation.y))
+        if (game.getKeys().d)
+            this.move(0.5 * MOVE_SPEED * Math.cos(rotation.y), 0.5 * -MOVE_SPEED * Math.sin(rotation.y))
         // tank rotation
         rotation.y -= game.mouseX / 500
 
@@ -65,7 +69,7 @@ export class Tank {
             this.getPosition().add(new Vector3(0, 0, z))
         else
             success = false
-        
+
         // climb steps
         if (!success && this.onGround) {
             const CLIMB = 2.5
