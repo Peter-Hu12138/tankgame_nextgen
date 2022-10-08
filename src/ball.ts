@@ -3,7 +3,7 @@ import { game } from "./main";
 import { PacketKill, PacketRemoveBall } from "./packets";
 
 const MOVE_SPEED = 1
-const MAX_TICKS = 30 * 3
+const MAX_TICKS = 30 * 5
 
 export class Ball {
 
@@ -66,7 +66,7 @@ export class Ball {
                     this.removeSelf()
                 }
             })
-            if (this.existedTicks > 10 && game.theTank!.getBB().intersectsBox(box3)) {
+            if (this.existedTicks > 5 && game.theTank!.getBB().intersectsBox(box3)) {
                 game.kill()
             }
         }

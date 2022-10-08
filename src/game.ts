@@ -185,27 +185,33 @@ export class Game {
         // zoom
         if (this.keys.c && !this.zooming) {
             this.zooming = true
-            this.camera.zoom = 3
+            this.camera.zoom = 1.5
             this.camera.updateProjectionMatrix()
+
+            const start = this.getShotPoint()
+            this.zoomHelper = new Line(new BufferGeometry().setFromPoints([
+                start.pos, this.getLandPoint()
+            ]), new LineBasicMaterial({ color: 0xff0000 }))
+            this.scene.add(this.zoomHelper)
         }
         if (!this.keys.c && this.zooming) {
             this.zooming = false
             this.camera.zoom = 1
             this.camera.updateProjectionMatrix()
+            this.scene.remove(this.zoomHelper!)
+        }
+        if (this.zooming) {
+            const start = this.getShotPoint()
+            this.zoomHelper!.geometry.setFromPoints([
+                start.pos, this.getLandPoint()
+            ])
         }
 
         // shot
         if (this.alive && this.keys.left && Date.now() - this.lastBall > BALL_DELAY) {
             this.lastBall = Date.now()
-            const rotation = this.theTank!.getRotation()
-            const velocity = new Vector3(
-                -1 * Math.sin(rotation.y),
-                1 * Math.sin(this.camera.rotation.x),
-                -1 * Math.cos(rotation.y)
-            )
-            const pos = this.theTank!.getPosition().clone().add(velocity.clone().setLength(2))
-            pos.y += 1.5
-            const ball = new Ball(true, pos, velocity, generateUUID())
+            const start = this.getShotPoint()
+            const ball = new Ball(true, start.pos, start.velocity, generateUUID())
             this.scene.add(ball.getMesh())
             this.balls.push(ball)
         }
@@ -234,6 +240,39 @@ export class Game {
 
     getKeys() {
         return this.keys
+    }
+
+    getShotPoint() {
+        const rotation = this.theTank!.getRotation()
+        const velocity = new Vector3(
+            -1 * Math.sin(rotation.y),
+            1 * Math.sin(this.camera.rotation.x),
+            -1 * Math.cos(rotation.y)
+        )
+        const pos = this.theTank!.getPosition().clone().add(velocity.clone().setLength(2))
+        pos.y += 1.5
+        return {
+            pos: pos,
+            velocity: velocity.normalize()
+        }
+    }
+
+    /**
+     * 获取子弹着陆位置
+     */
+    getLandPoint() {
+        const start = this.getShotPoint()
+
+        const raycaster = new Raycaster()
+        raycaster.set(start.pos, start.velocity.normalize())
+
+        const intersections = raycaster.intersectObjects(this.mapObjects)
+        let point: Vector3
+        if (intersections.length >= 1)
+            point = intersections[0].point
+        else
+            point = start.pos.clone().add(start.velocity.clone().setLength(20))
+        return point
     }
 
 }
