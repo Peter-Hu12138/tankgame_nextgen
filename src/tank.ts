@@ -26,12 +26,8 @@ export class Tank {
         const rotation = this.getRotation()
         if (game.getKeys().w)
             this.move(-MOVE_SPEED * Math.sin(rotation.y), -MOVE_SPEED * Math.cos(rotation.y))
-        if (game.getKeys().a)
-            this.move(-MOVE_SPEED * Math.cos(rotation.y), MOVE_SPEED * Math.sin(rotation.y))
         if (game.getKeys().s)
             this.move(MOVE_SPEED * Math.sin(rotation.y), MOVE_SPEED * Math.cos(rotation.y))
-        if (game.getKeys().d)
-            this.move(MOVE_SPEED * Math.cos(rotation.y), -MOVE_SPEED * Math.sin(rotation.y))
         // tank rotation
         rotation.y -= game.mouseX / 500
 

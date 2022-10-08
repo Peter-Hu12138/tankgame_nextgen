@@ -8,7 +8,7 @@ import { PacketRemoveTank } from "./packets";
 import { Tank } from "./tank";
 
 export const TPS = 30
-export const MOVE_SPEED = 0.5
+export const MOVE_SPEED = 0.3
 export const GRAVITY = -0.5
 const ADDRESS = `ws://${location.hostname}:8080`
 const BALL_DELAY = 250
@@ -43,7 +43,7 @@ export class Game {
     public theTank: Tank | undefined
     public remoteTanks: Array<Tank> = []
 
-    private keys = { "w": false, "a": false, "s": false, "d": false, "space": false, "c": false, "left": false }
+    private keys = { "w": false, "s": false, "space": false, "c": false, "left": false }
     public mouseX = 0
     public mouseY = 0
 
