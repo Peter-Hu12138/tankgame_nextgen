@@ -120,14 +120,14 @@ export class Game {
     onRender2D() {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
         if (!this.alive) {
-            this.context.fillStyle = "#000000a0"
+            this.context.fillStyle = "#00000080"
             this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
             this.context.font = '32px serif'
             this.context.fillStyle = "#ffffffff"
             this.context.fillText("你死了", this.canvas.width / 2 - this.context.measureText("你死了").width / 2, this.canvas.height / 2)
         }
         if (!this.network.isConnected()) {
-            this.context.fillStyle = "#000000a0"
+            this.context.fillStyle = "#00000080"
             this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
             this.context.font = '32px serif'
             this.context.fillStyle = "#ffffffff"
