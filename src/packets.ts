@@ -70,3 +70,17 @@ export class PacketKill extends Packet {
     }
 
 }
+
+export class PacketDie extends Packet {
+    private action = "die"
+}
+
+export class PacketSetName extends Packet {
+    private action = "name"
+    readonly name: string
+
+    constructor (name: string) {
+        super()
+        this.name = name
+    }
+}

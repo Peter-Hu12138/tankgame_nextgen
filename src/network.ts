@@ -2,7 +2,7 @@ import { Vector3 } from "three"
 import { generateUUID } from "three/src/math/MathUtils"
 import { Ball } from "./ball"
 import { game } from "./main"
-import { PacketBall, PacketRemoveBall, PacketRemoveTank, PakcetPos } from "./packets"
+import { PacketBall, PacketDie, PacketKill, PacketRemoveBall, PacketRemoveTank, PacketSetName, PakcetPos } from "./packets"
 import { Tank } from "./tank"
 
 const TIMEOUT = 30 * 5
@@ -50,12 +50,34 @@ export class Network {
                 this.handleRemoveTank(packet as PacketRemoveTank)
                 break
             case "kill":
-                if (packet.target === this.id) game.kill()
+                this.handleKill(packet as PacketKill)
                 break
             case "rmball":
                 this.handleRemoveBall(packet as PacketRemoveBall)
                 break
+            case "die":
+                this.handleDie(packet as PacketDie)
+                break
+            case "name":
+                this.handleSetName(packet as PacketSetName)
+                break
         }
+    }
+
+    handleSetName(packet: PacketSetName) {
+        game.ranking.updateUsername(packet.id, packet.name)
+    }
+
+    handleKill(packet: PacketKill) {
+        game.ranking.addKill(packet.id)
+        if (packet.target === this.id) {
+            game.kill()
+            game.ranking.addDeath("You")
+        }
+    }
+
+    handleDie(packet: PacketDie) {
+        game.ranking.addDeath(packet.id)
     }
 
     handleRemoveTank(packet: PacketRemoveTank) {
@@ -133,6 +155,11 @@ export class Network {
             }
             return valid
         })
+
+        // set username
+        if (this.existedTicks % 60 === 0) {
+            this.send(new PacketSetName(game.name))
+        }
     }
 
     updateClientBall(ball: Ball) {

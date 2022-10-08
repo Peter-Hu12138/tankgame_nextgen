@@ -63,11 +63,14 @@ export class Ball {
             game.remoteTanks.forEach((remoteTank) => {
                 if (remoteTank.getBB().intersectsBox(box3)) {
                     game.network.send(new PacketKill(remoteTank.id))
+                    game.ranking.addKill("You")
                     this.removeSelf()
                 }
             })
             if (this.existedTicks > 5 && game.theTank!.getBB().intersectsBox(box3)) {
                 game.kill()
+                this.removeSelf()
+                game.ranking.addDeath("You")
             }
         }
     }

@@ -4,7 +4,8 @@ import { generateUUID } from "three/src/math/MathUtils";
 import { Ball } from "./ball";
 import { initBoundingBoxes, initMap } from "./map";
 import { Network } from "./network";
-import { PacketRemoveTank } from "./packets";
+import { PacketDie, PacketRemoveTank, PacketSetName } from "./packets";
+import { Ranking } from "./ranking";
 import { Tank } from "./tank";
 
 export const TPS = 30
@@ -63,6 +64,9 @@ export class Game {
     private zooming = false
     private zoomHelper: Line | undefined
 
+    public ranking = new Ranking()
+    public name = "undefined"
+
     constructor() {
         this.scene = new Scene()
         this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight)
@@ -119,6 +123,7 @@ export class Game {
 
     onRender2D() {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
+        this.ranking.onRender2D(this.context)
         if (!this.alive) {
             this.context.fillStyle = "#00000080"
             this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
@@ -137,7 +142,7 @@ export class Game {
 
     kill() {
         if (!this.alive) return
-
+        this.network.send(new PacketDie())
         this.network.send(new PacketRemoveTank())
         this.alive = false
         setTimeout(() => {
@@ -172,9 +177,13 @@ export class Game {
         document.body.addEventListener("mouseup", () => {
             if (document.pointerLockElement === document.body) this.keys.left = false
         })
-        document.body.onclick = () => {
+        this.canvas.onclick = () => {
             document.body.requestPointerLock()
         }
+        document.getElementById("btn")?.addEventListener("click", () => {
+            let name = prompt("Username:")
+            if (name !== null) this.name = name
+        })
 
         setInterval(() => this.onTick(), 1000 / TPS)
         requestAnimationFrame(() => this.onRender())
