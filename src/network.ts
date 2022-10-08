@@ -14,6 +14,8 @@ export class Network {
     private ws!: WebSocket
     private id = generateUUID()
 
+    private connected = false
+
     constructor(addr: string) {
         this.addr = addr
     }
@@ -21,11 +23,17 @@ export class Network {
     connect() {
         this.ws = new WebSocket(this.addr)
         this.ws.addEventListener("open", () => this.onOpen())
+        this.ws.addEventListener("close", () => this.onClose())
         this.ws.addEventListener("message", (e) => this.onMessage(e.data as string))
     }
 
     onOpen() {
         console.log("WebSocket connected")
+        this.connected = true
+    }
+
+    onClose() {
+        this.connected = false
     }
 
     onMessage(msg: string) {
@@ -142,6 +150,10 @@ export class Network {
     send(packet: any) {
         packet.id = this.id
         this.ws.send(JSON.stringify(packet))
+    }
+
+    isConnected() {
+        return this.connected
     }
 
 }
