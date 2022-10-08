@@ -33,13 +33,7 @@ export class Tank {
 
         // falling
         let bb_tank = this.getBB().clone().translate(new Vector3(0, GRAVITY, 0))
-        let collide = false
-        game.map!.forEach((each) => {
-            each.computeBoundingBox()
-            if (each.boundingBox!.intersectsBox(bb_tank))
-                collide = true
-        })
-        if (!collide) {
+        if (!this.collisionCheck(bb_tank)) {
             this.getPosition().add(new Vector3(0, GRAVITY, 0))
             this.onGround = false
         } else {
@@ -61,21 +55,13 @@ export class Tank {
         let success = true // 是否成功移动
 
         let bb_tank = this.getBB().clone().translate(new Vector3(x, 0, 0))
-        let collide = false
-        game.mapBoundingBoxes!.forEach((each) => {
-            if (each.intersectsBox(bb_tank)) collide = true
-        })
-        if (!collide)
+        if (!this.collisionCheck(bb_tank))
             this.getPosition().add(new Vector3(x, 0, 0))
         else
             success = false
 
         bb_tank = this.getBB().clone().translate(new Vector3(0, 0, z))
-        collide = false
-        game.mapBoundingBoxes!.forEach((each) => {
-            if (each.intersectsBox(bb_tank)) collide = true
-        })
-        if (!collide)
+        if (!this.collisionCheck(bb_tank))
             this.getPosition().add(new Vector3(0, 0, z))
         else
             success = false
@@ -84,11 +70,7 @@ export class Tank {
         if (!success && this.onGround) {
             const CLIMB = 2.5
             let bb_tank = this.getBB().clone().translate(new Vector3(x, CLIMB, z))
-            let collide = false
-            game.mapBoundingBoxes!.forEach((each) => {
-                if (each.intersectsBox(bb_tank)) collide = true
-            })
-            if (!collide)
+            if (!this.collisionCheck(bb_tank))
                 this.getPosition().add(new Vector3(x, CLIMB, 0))
 
         }
@@ -110,5 +92,32 @@ export class Tank {
         let box = new Box3()
         box.expandByObject(this.model)
         return box
+    }
+
+    collisionCheck(bb_tank: Box3) {
+        let collide = false
+        for (let index = 0; index < game.mapBoundingBoxes!.length; index++) {
+            const each = game.mapBoundingBoxes![index];
+            if (each.intersectsBox(bb_tank)) {
+                collide = true
+                break
+            }
+        }
+        return collide
+    }
+
+    randomPos() {
+        // random spawn point
+        while (true) {
+            const box3 = new Box3()
+            game.mapBoundingBoxes!.forEach((each) => box3.union((each)))
+            this.getPosition().set(
+                (box3.max.x - box3.min.x) * Math.random() + box3.min.x,
+                (box3.max.y - box3.min.y) * Math.random() + box3.min.y,
+                (box3.max.z - box3.min.z) * Math.random() + box3.min.z
+            )
+            let bb_tank = this.getBB()
+            if (!this.collisionCheck(bb_tank)) break
+        }
     }
 }

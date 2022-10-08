@@ -136,10 +136,13 @@ export class Game {
     }
 
     kill() {
+        if (!this.alive) return
+
         this.network.send(new PacketRemoveTank())
         this.alive = false
         setTimeout(() => {
             this.alive = true
+            this.theTank!.randomPos()
         }, RESPAWN);
     }
 
@@ -177,6 +180,7 @@ export class Game {
         requestAnimationFrame(() => this.onRender())
 
         this.network.connect()
+        this.theTank!.randomPos()
     }
 
     onTick() {
@@ -185,7 +189,7 @@ export class Game {
         // zoom
         if (this.keys.c && !this.zooming) {
             this.zooming = true
-            this.camera.zoom = 1.5
+            this.camera.zoom = 1.3
             this.camera.updateProjectionMatrix()
 
             const start = this.getShotPoint()
