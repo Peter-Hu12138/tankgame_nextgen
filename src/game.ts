@@ -11,8 +11,8 @@ import { Tank } from "./tank";
 export const TPS = 30
 export const MOVE_SPEED = 0.5
 export const GRAVITY = -0.5
-const ADDRESS = `ws://${location.hostname}:8080`
-const BALL_DELAY = 250
+const ADDRESS = `wss://${location.host}/tankgamews`
+const BALL_DELAY = 500
 const RESPAWN = 3000
 
 const load_obj = (name: string) => {
