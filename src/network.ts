@@ -175,6 +175,7 @@ export class Network {
     }
 
     send(packet: any) {
+        if (!this.connect) return;
         packet.id = this.id
         this.ws.send(JSON.stringify(packet))
     }
