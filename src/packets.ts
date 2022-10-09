@@ -84,3 +84,13 @@ export class PacketSetName extends Packet {
         this.name = name
     }
 }
+
+export class PacketChat extends Packet {
+    private action = "chat"
+    readonly msg: string
+
+    constructor (msg: string) {
+        super()
+        this.msg = msg
+    }
+}

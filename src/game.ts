@@ -2,6 +2,7 @@ import { AmbientLight, Box3, BufferGeometry, CameraHelper, DirectionalLight, Dir
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 import { generateUUID } from "three/src/math/MathUtils";
 import { Ball, getLandPoint, getShotPoint, shot } from "./ball";
+import { Chat } from "./chat";
 import { initBoundingBoxes, initMap } from "./map";
 import { Network } from "./network";
 import { PacketDie, PacketKill, PacketRemoveTank, PacketSetName } from "./packets";
@@ -44,7 +45,7 @@ export class Game {
     public theTank: Tank | undefined
     public remoteTanks: Array<Tank> = []
 
-    private keys = { "w": false, "s": false, "space": false, "c": false, "left": false, "a": false, "d": false, "r": false }
+    private keys = { "w": false, "s": false, "space": false, "c": false, "left": false, "a": false, "d": false, "t": false }
     public mouseX = 0
     public mouseY = 0
 
@@ -67,16 +68,14 @@ export class Game {
     public ranking = new Ranking()
     public name = "undefined"
 
+    public chat = new Chat()
+
     constructor() {
         this.scene = new Scene()
         this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight)
         this.camera.rotation.order = 'YXZ'
 
         // lights
-        /*
-        const light = new DirectionalLight(0xffffff)
-        light.position.set(50, 30, 0)
-        this.scene.add(light)*/
         const directionalLight = new DirectionalLight(0xffffff, 0.8)
         directionalLight.position.set(-20, 25, -10)
         directionalLight.castShadow = true
@@ -153,6 +152,7 @@ export class Game {
             this.context.fillStyle = "#ffffffff"
             this.context.fillText("你死了", this.canvas.width / 2 - this.context.measureText("你死了").width / 2, this.canvas.height / 2)
         }
+        this.chat.onRender2D(this.context, this.canvas.width, this.canvas.height)
         if (!this.network.isConnected()) {
             this.context.fillStyle = "#00000080"
             this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
@@ -182,6 +182,7 @@ export class Game {
                 (this.keys as any)[e.key] = true
             if (e.key === " ")
                 this.keys.space = true
+            this.chat.onKeyPress(e)
         })
         document.body.addEventListener("keyup", (e) => {
             if ((this.keys as any)[e.key] !== undefined)
@@ -217,6 +218,9 @@ export class Game {
     }
 
     onTick() {
+        if (this.chat.input) return
+        if (this.keys.t) this.chat.input = true
+
         this.theTank!.update()
 
         // zoom

@@ -67,4 +67,8 @@ export class Ranking {
     updateUsername(id: string, name: string) {
         this.usernames[id] = name
     }
+
+    getUsername(id: string) {
+        return this.usernames[id]
+    }
 }

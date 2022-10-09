@@ -2,7 +2,7 @@ import { Vector3 } from "three"
 import { generateUUID } from "three/src/math/MathUtils"
 import { Ball } from "./ball"
 import { game } from "./main"
-import { PacketBall, PacketDie, PacketKill, PacketRemoveBall, PacketRemoveTank, PacketSetName, PakcetPos } from "./packets"
+import { PacketBall, PacketChat, PacketDie, PacketKill, PacketRemoveBall, PacketRemoveTank, PacketSetName, PakcetPos } from "./packets"
 import { Tank } from "./tank"
 
 const TIMEOUT = 30 * 5
@@ -61,7 +61,15 @@ export class Network {
             case "name":
                 this.handleSetName(packet as PacketSetName)
                 break
+            case "chat":
+                this.handleChat(packet as PacketChat)
+                break
         }
+    }
+
+    handleChat(packet: PacketChat) {
+        if (packet.msg.length > 100) return
+        game.chat.add(packet.id, packet.msg)
     }
 
     handleSetName(packet: PacketSetName) {
