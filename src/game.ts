@@ -1,7 +1,7 @@
-import { Box3, BufferGeometry, Camera, DirectionalLight, Group, HemisphereLight, Line, LineBasicMaterial, Matrix4, Mesh, MeshPhongMaterial, MeshStandardMaterial, Object3D, PerspectiveCamera, Raycaster, Renderer, Scene, Vector3, WebGLRenderer } from "three";
+import { Box3, BufferGeometry, DirectionalLight, Group, HemisphereLight, Line, LineBasicMaterial, Matrix4, Mesh, MeshPhongMaterial, MeshStandardMaterial, Object3D, PerspectiveCamera, Raycaster, Renderer, Scene, Vector3, WebGLRenderer } from "three";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 import { generateUUID } from "three/src/math/MathUtils";
-import { Ball } from "./ball";
+import { Ball, getLandPoint, getShotPoint, shot } from "./ball";
 import { initBoundingBoxes, initMap } from "./map";
 import { Network } from "./network";
 import { PacketDie, PacketKill, PacketRemoveTank, PacketSetName } from "./packets";
@@ -52,7 +52,7 @@ export class Game {
     public mapBoundingBoxes: Array<Box3> | undefined
     public mapObjects: Array<Object3D> = []
 
-    private balls: Array<Ball> = []
+    public balls: Array<Ball> = []
     public remoteBalls: Array<Ball> = []
     private lastBall = 0
 
@@ -201,9 +201,9 @@ export class Game {
             this.camera.zoom = 1.3
             this.camera.updateProjectionMatrix()
 
-            const start = this.getShotPoint()
+            const start = getShotPoint()
             this.zoomHelper = new Line(new BufferGeometry().setFromPoints([
-                start.pos, this.getLandPoint()
+                start.pos, getLandPoint()
             ]), new LineBasicMaterial({ color: 0xff0000 }))
             this.scene.add(this.zoomHelper)
         }
@@ -214,19 +214,16 @@ export class Game {
             this.scene.remove(this.zoomHelper!)
         }
         if (this.zooming) {
-            const start = this.getShotPoint()
+            const start = getShotPoint()
             this.zoomHelper!.geometry.setFromPoints([
-                start.pos, this.getLandPoint()
+                start.pos, getLandPoint()
             ])
         }
 
         // shot
         if (this.alive && this.keys.left && Date.now() - this.lastBall > BALL_DELAY) {
             this.lastBall = Date.now()
-            const start = this.getShotPoint()
-            const ball = new Ball(true, start.pos, start.velocity, generateUUID())
-            this.scene.add(ball.getMesh())
-            this.balls.push(ball)
+            shot()
         }
 
         this.balls.forEach((ball) => {
@@ -253,39 +250,6 @@ export class Game {
 
     getKeys() {
         return this.keys
-    }
-
-    getShotPoint() {
-        const rotation = this.theTank!.getRotation()
-        const velocity = new Vector3(
-            -1 * Math.sin(rotation.y),
-            1 * Math.sin(this.camera.rotation.x),
-            -1 * Math.cos(rotation.y)
-        )
-        const pos = this.theTank!.getPosition().clone().add(velocity.clone().setLength(2))
-        pos.y += 1.5
-        return {
-            pos: pos,
-            velocity: velocity.normalize()
-        }
-    }
-
-    /**
-     * 获取子弹着陆位置
-     */
-    getLandPoint() {
-        const start = this.getShotPoint()
-
-        const raycaster = new Raycaster()
-        raycaster.set(start.pos, start.velocity.normalize())
-
-        const intersections = raycaster.intersectObjects(this.mapObjects)
-        let point: Vector3
-        if (intersections.length >= 1)
-            point = intersections[0].point
-        else
-            point = start.pos.clone().add(start.velocity.clone().setLength(20))
-        return point
     }
 
 }

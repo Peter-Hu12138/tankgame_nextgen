@@ -1,4 +1,5 @@
-import { Box3, BoxGeometry, Intersection, Mesh, MeshBasicMaterial, MeshStandardMaterial, Raycaster, SphereGeometry, TriangleStripDrawMode, Vector3 } from "three";
+import { Box3, BoxGeometry, Intersection, Mesh, MeshBasicMaterial, MeshStandardMaterial, Raycaster, ShortType, SphereGeometry, TriangleStripDrawMode, Vector3 } from "three";
+import { generateUUID } from "three/src/math/MathUtils";
 import { game } from "./main";
 import { PacketKill, PacketRemoveBall } from "./packets";
 
@@ -105,4 +106,44 @@ export class Ball {
     getVelocity() {
         return this.velocity
     }
+}
+
+export function getShotPoint() {
+    const rotation = game.theTank!.getRotation()
+    const velocity = new Vector3(
+        -1 * Math.sin(rotation.y),
+        1 * Math.sin(game.camera.rotation.x),
+        -1 * Math.cos(rotation.y)
+    )
+    const pos = game.theTank!.getPosition().clone().add(velocity.clone().setLength(2))
+    pos.y += 1.5
+    return {
+        pos: pos,
+        velocity: velocity.normalize()
+    }
+}
+
+/**
+ * 获取子弹着陆位置
+ */
+export function getLandPoint() {
+    const start = getShotPoint()
+
+    const raycaster = new Raycaster()
+    raycaster.set(start.pos, start.velocity.normalize())
+
+    const intersections = raycaster.intersectObjects(game.mapObjects)
+    let point: Vector3
+    if (intersections.length >= 1)
+        point = intersections[0].point
+    else
+        point = start.pos.clone().add(start.velocity.clone().setLength(20))
+    return point
+}
+
+export function shot() {
+    const start = getShotPoint()
+    const ball = new Ball(true, start.pos, start.velocity, generateUUID())
+    game.scene.add(ball.getMesh())
+    game.balls.push(ball)
 }
