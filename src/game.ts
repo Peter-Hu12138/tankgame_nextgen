@@ -11,7 +11,7 @@ import { Tank } from "./tank";
 export const TPS = 30
 export const MOVE_SPEED = 0.5
 export const GRAVITY = -0.5
-const ADDRESS = `wss://${location.host}/tankgamews`
+const ADDRESS = location.hostname === "127.0.0.1" ? "ws://127.0.0.1:8080" : `wss://${location.host}/tankgamews`
 const BALL_DELAY = 500
 const RESPAWN = 3000
 
@@ -182,7 +182,7 @@ export class Game {
         }
         document.getElementById("btn")?.addEventListener("click", () => {
             let name = prompt("Username:")
-            if (name !== null) this.name = name
+            if (name !== null) this.name = (name.length < 20 ? name : "我妈死了 我要炸房")
         })
 
         setInterval(() => this.onTick(), 1000 / TPS)
