@@ -56,25 +56,26 @@ export class Tank {
     private move(x: number, z: number) {
         if (!this.clientSide) return;
 
-        let success = true // 是否成功移动
+        let fail = 0
 
         let bb_tank = this.getBB().clone().translate(new Vector3(x, 0, 0))
         if (!this.collisionCheck(bb_tank))
             this.getPosition().add(new Vector3(x, 0, 0))
         else
-            success = false
+            fail++
 
         bb_tank = this.getBB().clone().translate(new Vector3(0, 0, z))
         if (!this.collisionCheck(bb_tank))
             this.getPosition().add(new Vector3(0, 0, z))
         else
-            success = false
+            fail++
 
         // climb steps
-        if (!success && this.onGround) {
+        if (fail > 0 && this.onGround) {
             const CLIMB = 2.5
-            let bb_tank = this.getBB().clone().translate(new Vector3(x, CLIMB, z))
-            if (!this.collisionCheck(bb_tank))
+            let bb_tank = this.getBB().clone().translate(new Vector3(x, 0, z))
+            let bb_tank2 = this.getBB().clone().translate(new Vector3(x, CLIMB, z))
+            if (this.collisionCheck(bb_tank) && !this.collisionCheck(bb_tank2))
                 this.getPosition().add(new Vector3(x, CLIMB, 0))
 
         }
