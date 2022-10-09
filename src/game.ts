@@ -1,4 +1,4 @@
-import { Box3, BufferGeometry, DirectionalLight, Group, HemisphereLight, Line, LineBasicMaterial, Matrix4, Mesh, MeshPhongMaterial, MeshStandardMaterial, Object3D, PerspectiveCamera, Raycaster, Renderer, Scene, Vector3, WebGLRenderer } from "three";
+import { AmbientLight, Box3, BufferGeometry, CameraHelper, DirectionalLight, DirectionalLightShadow, Group, HemisphereLight, Line, LineBasicMaterial, Matrix4, Mesh, MeshPhongMaterial, MeshStandardMaterial, Object3D, PCFSoftShadowMap, PerspectiveCamera, Raycaster, Renderer, Scene, Vector3, WebGLRenderer } from "three";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 import { generateUUID } from "three/src/math/MathUtils";
 import { Ball, getLandPoint, getShotPoint, shot } from "./ball";
@@ -38,7 +38,7 @@ export class Game {
     public scene: Scene
     public camera: PerspectiveCamera
     public tank: Group | undefined
-    private renderer: Renderer | undefined
+    private renderer: WebGLRenderer | undefined
 
     public alive = true
     public theTank: Tank | undefined
@@ -72,18 +72,36 @@ export class Game {
         this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight)
         this.camera.rotation.order = 'YXZ'
 
+        // lights
+        /*
         const light = new DirectionalLight(0xffffff)
         light.position.set(50, 30, 0)
-        this.scene.add(light)
+        this.scene.add(light)*/
+        const directionalLight = new DirectionalLight(0xffffff, 0.8)
+        directionalLight.position.set(-20, 25, -10)
+        directionalLight.castShadow = true
+        directionalLight.shadow.camera.near = 0.01
+        directionalLight.shadow.camera.far = 500
+        directionalLight.shadow.camera.right = 60
+        directionalLight.shadow.camera.left = -60
+        directionalLight.shadow.camera.top = 60
+        directionalLight.shadow.camera.bottom = -60
+        directionalLight.shadow.mapSize.width = 1024
+        directionalLight.shadow.mapSize.height = 1024
+        directionalLight.shadow.radius = 4
+        directionalLight.shadow.bias = -0.00006
+        this.scene.add(directionalLight)
 
-        const hemiLight = new HemisphereLight(0xffffff, 0xffffff, 0.6);
-        hemiLight.color.setHSL(0.6, 1, 0.6);
-        hemiLight.groundColor.setHSL(0.095, 1, 0.75);
-        hemiLight.position.set(0, 50, 0);
-        this.scene.add(hemiLight);
+        const hemisphereLight = new HemisphereLight(0x4488bb, 0x002244, 0.3)
+        this.scene.add(hemisphereLight)
 
+        const ambientLight = new AmbientLight(0xa0a0a0, 0.2)
+        this.scene.add(ambientLight)
+
+        // network
         this.network = new Network(ADDRESS)
 
+        // 2d canvas
         this.canvas = document.getElementById("2d") as HTMLCanvasElement
         this.context = this.canvas.getContext("2d") as CanvasRenderingContext2D
         this.canvas.width = window.innerWidth
@@ -94,13 +112,15 @@ export class Game {
         // tank model
         const obj = await load_obj("tank.obj")
         obj.children.forEach((child) => {
-            (child as Mesh).material = new MeshStandardMaterial({ color: 0x00a000 })
+            (child as Mesh).material = new MeshPhongMaterial({ color: 0x00a000 })
         })
         obj.scale.set(0.5, 0.5, 0.5)
         this.tank = obj.clone()
 
+        // renderer
         this.renderer = new WebGLRenderer()
         this.renderer.setSize(window.innerWidth, window.innerHeight)
+        this.renderer!.shadowMap.enabled = true
         document.body.appendChild(this.renderer.domElement)
 
         // map model
@@ -109,6 +129,8 @@ export class Game {
         this.map = initMap(obj_map)
         this.map.forEach((each) => {
             const mesh = new Mesh(each, new MeshPhongMaterial())
+            mesh.castShadow = true
+            mesh.receiveShadow = true
             this.scene.add(mesh)
             this.mapObjects.push(mesh)
         })
@@ -190,6 +212,7 @@ export class Game {
 
         this.network.connect()
         this.theTank!.randomPos()
+
     }
 
     onTick() {

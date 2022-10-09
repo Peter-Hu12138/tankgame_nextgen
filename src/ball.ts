@@ -27,6 +27,7 @@ export class Ball {
         this.pos = pos
         this.mesh = new Mesh(new BoxGeometry(0.5, 0.5, 0.5), new MeshStandardMaterial({ color: 0xff0000 }))
         this.mesh.position.copy(pos)
+        this.mesh.castShadow = true
 
         this.calcReflectPoint()
 
