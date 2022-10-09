@@ -205,6 +205,7 @@ export class Game {
         document.getElementById("btn")?.addEventListener("click", () => {
             let name = prompt("Username:")
             if (name !== null) this.name = (name.length < 20 ? name : "我妈死了 我要炸房")
+            this.network.updateUsername()
         })
 
         setInterval(() => this.onTick(), 1000 / TPS)

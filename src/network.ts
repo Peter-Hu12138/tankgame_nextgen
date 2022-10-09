@@ -126,6 +126,8 @@ export class Network {
 
             game.remoteTanks.push(new_tank)
             game.scene.add(new_tank.getModel())
+            
+            this.updateUsername()
         } else { // existing tank
             tank.lastUpdate = this.existedTicks
             tank.getPosition().set(packet.x, packet.y, packet.z)
@@ -156,10 +158,10 @@ export class Network {
             return valid
         })
 
-        // set username
-        if (this.existedTicks % 60 === 0) {
-            this.send(new PacketSetName(game.name))
-        }
+    }
+    
+    updateUsername() {
+        this.send(new PacketSetName(game.name))
     }
 
     updateClientBall(ball: Ball) {
