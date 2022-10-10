@@ -3,7 +3,9 @@ import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 import { generateUUID } from "three/src/math/MathUtils";
 import { Ball, getLandPoint, getShotPoint, shot } from "./ball";
 import { Chat } from "./chat";
+import { Entity } from "./entity";
 import { initBoundingBoxes, initMap } from "./map";
+import { loadMap, loadTank } from "./models";
 import { Network } from "./network";
 import { PacketDie, PacketKill, PacketRemoveTank, PacketSetName } from "./packets";
 import { Ranking } from "./ranking";
@@ -16,23 +18,7 @@ const ADDRESS = location.hostname === "127.0.0.1" ? "ws://127.0.0.1:8080" : `wss
 const BALL_DELAY = 500
 const RESPAWN = 3000
 
-const load_obj = (name: string) => {
-    return new Promise<Group>((resolve, reject) => {
-        const loader = new OBJLoader();
-        loader.load(
-            name,
-            (obj) => {
-                resolve(obj)
-            },
-            (xhr) => {
-                console.log("Loading...", xhr.loaded / xhr.total)
-            },
-            (err) => {
-                reject(err)
-            }
-        )
-    })
-}
+
 
 export class Game {
 
@@ -42,7 +28,7 @@ export class Game {
     private renderer: WebGLRenderer | undefined
 
     public alive = true
-    public theTank: Tank | undefined
+    public thePlayer: Entity | undefined
     public remoteTanks: Array<Tank> = []
 
     private keys = { "w": false, "s": false, "space": false, "c": false, "left": false, "a": false, "d": false, "t": false }
@@ -109,12 +95,7 @@ export class Game {
 
     async load() {
         // tank model
-        const obj = await load_obj("tank.obj")
-        obj.children.forEach((child) => {
-            (child as Mesh).material = new MeshPhongMaterial({ color: 0x00a000 })
-        })
-        obj.scale.set(0.5, 0.5, 0.5)
-        this.tank = obj.clone()
+        this.tank = await loadTank()
 
         // renderer
         this.renderer = new WebGLRenderer()
@@ -123,8 +104,7 @@ export class Game {
         document.body.appendChild(this.renderer.domElement)
 
         // map model
-        let obj_map = await load_obj("map.obj")
-        obj_map.applyMatrix4(new Matrix4().scale(new Vector3(2, 2, 2)))
+        const obj_map = await loadMap()
         this.map = initMap(obj_map)
         this.map.forEach((each) => {
             const mesh = new Mesh(each, new MeshPhongMaterial())
@@ -143,22 +123,21 @@ export class Game {
     }
 
     onRender2D() {
+        const drawText = (text: string) => {
+            this.context.fillStyle = "#00000080"
+            this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
+            this.context.font = '32px serif'
+            this.context.fillStyle = "#ffffffff"
+            this.context.fillText(text, this.canvas.width / 2 - this.context.measureText(text).width / 2, this.canvas.height / 2)
+        }
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
         this.ranking.onRender2D(this.context)
         if (!this.alive) {
-            this.context.fillStyle = "#00000080"
-            this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
-            this.context.font = '32px serif'
-            this.context.fillStyle = "#ffffffff"
-            this.context.fillText("你死了", this.canvas.width / 2 - this.context.measureText("你死了").width / 2, this.canvas.height / 2)
+            drawText("你死了")
         }
         this.chat.onRender2D(this.context, this.canvas.width, this.canvas.height)
         if (!this.network.isConnected()) {
-            this.context.fillStyle = "#00000080"
-            this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
-            this.context.font = '32px serif'
-            this.context.fillStyle = "#ffffffff"
-            this.context.fillText("服务器连接丢失", this.canvas.width / 2 - this.context.measureText("服务器连接丢失s").width / 2, this.canvas.height / 2)
+            drawText("服务器连接丢失")
         }
     }
 
@@ -167,15 +146,15 @@ export class Game {
         this.network.send(new PacketDie())
         this.network.send(new PacketRemoveTank())
         this.alive = false
-        this.theTank!.randomPos()
         setTimeout(() => {
             this.alive = true
+            this.thePlayer!.randomPos()
         }, RESPAWN);
     }
 
     start() {
-        this.theTank = new Tank(this.tank!.clone().translateY(5), true, "")
-        this.scene.add(this.theTank.getModel())
+        this.thePlayer = new Tank(true, "")
+        this.scene.add(this.thePlayer.getModel())
 
         document.body.addEventListener("keydown", (e) => {
             if ((this.keys as any)[e.key] !== undefined)
@@ -213,7 +192,7 @@ export class Game {
         requestAnimationFrame(() => this.onRender())
 
         this.network.connect()
-        this.theTank!.randomPos()
+        this.thePlayer!.randomPos()
 
     }
 
@@ -221,7 +200,8 @@ export class Game {
         if (this.chat.input) return
         if (this.keys.t) this.chat.input = true
 
-        this.theTank!.update()
+        this.thePlayer!.update()
+        this.thePlayer!.updateCamera()
 
         // zoom
         if (this.keys.c && !this.zooming) {

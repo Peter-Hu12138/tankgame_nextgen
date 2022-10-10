@@ -1,8 +1,9 @@
 import { Box3, Group, Vector3 } from "three";
+import { Entity } from "./entity";
 import { GRAVITY, MOVE_SPEED } from "./game";
 import { game } from "./main";
 
-export class Tank {
+export class Tank extends Entity {
 
     readonly id: string
 
@@ -12,8 +13,9 @@ export class Tank {
 
     public lastUpdate = 0
 
-    constructor(model: Group, clientSide: boolean, id: string) {
-        this.model = model
+    constructor(clientSide: boolean, id: string) {
+        super()
+        this.model = game.tank!.clone()
         this.clientSide = clientSide
         this.id = id
     }
@@ -22,7 +24,6 @@ export class Tank {
         if (!this.clientSide) return;
 
         // tank position
-        const position = this.getPosition()
         const rotation = this.getRotation()
         if (game.getKeys().w)
             this.move(-MOVE_SPEED * Math.sin(rotation.y), -MOVE_SPEED * Math.cos(rotation.y))
@@ -44,13 +45,18 @@ export class Tank {
             this.onGround = true
         }
 
+    }
+
+    updateCamera(): void {
+        const position = this.getPosition()
+        const rotation = this.getRotation()
+
         // camera position
         game.camera.position.set(position.x + 3 * Math.sin(rotation.y), position.y + 4, position.z + 3 * Math.cos(rotation.y))
 
         // camera rotation
         game.camera.rotation.y = rotation.y
         game.camera.rotation.x -= game.mouseY / 500
-
     }
 
     private move(x: number, z: number) {
@@ -93,36 +99,4 @@ export class Tank {
         return this.model
     }
 
-    getBB(): Box3 {
-        let box = new Box3()
-        box.expandByObject(this.model)
-        return box
-    }
-
-    collisionCheck(bb_tank: Box3) {
-        let collide = false
-        for (let index = 0; index < game.mapBoundingBoxes!.length; index++) {
-            const each = game.mapBoundingBoxes![index];
-            if (each.intersectsBox(bb_tank)) {
-                collide = true
-                break
-            }
-        }
-        return collide
-    }
-
-    randomPos() {
-        // random spawn point
-        while (true) {
-            const box3 = new Box3()
-            game.mapBoundingBoxes!.forEach((each) => box3.union((each)))
-            this.getPosition().set(
-                (box3.max.x - box3.min.x) * Math.random() + box3.min.x,
-                (box3.max.y - box3.min.y) * Math.random() + box3.min.y,
-                (box3.max.z - box3.min.z) * Math.random() + box3.min.z
-            )
-            let bb_tank = this.getBB()
-            if (!this.collisionCheck(bb_tank)) break
-        }
-    }
 }

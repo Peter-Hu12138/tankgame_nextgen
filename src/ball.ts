@@ -69,7 +69,7 @@ export class Ball {
                     this.removeSelf()
                 }
             })
-            if (this.existedTicks > 5 && game.theTank!.getBB().intersectsBox(box3)) {
+            if (this.existedTicks > 5 && game.thePlayer!.getBB().intersectsBox(box3)) {
                 game.kill()
                 this.removeSelf()
                 game.ranking.addDeath("You")
@@ -110,13 +110,13 @@ export class Ball {
 }
 
 export function getShotPoint() {
-    const rotation = game.theTank!.getRotation()
+    const rotation = game.thePlayer!.getRotation()
     const velocity = new Vector3(
         -1 * Math.sin(rotation.y),
         1 * Math.sin(game.camera.rotation.x),
         -1 * Math.cos(rotation.y)
     )
-    const pos = game.theTank!.getPosition().clone().add(velocity.clone().setLength(2))
+    const pos = game.thePlayer!.getPosition().clone().add(velocity.clone().setLength(2))
     pos.y += 1.5
     return {
         pos: pos,

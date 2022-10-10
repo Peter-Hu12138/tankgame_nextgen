@@ -149,12 +149,12 @@ export class Network {
 
         if (game.alive)
             this.send(new PakcetPos(
-                game.theTank!.getPosition().x,
-                game.theTank!.getPosition().y,
-                game.theTank!.getPosition().z,
-                game.theTank!.getRotation().x,
-                game.theTank!.getRotation().y,
-                game.theTank!.getRotation().z
+                game.thePlayer!.getPosition().x,
+                game.thePlayer!.getPosition().y,
+                game.thePlayer!.getPosition().z,
+                game.thePlayer!.getRotation().x,
+                game.thePlayer!.getRotation().y,
+                game.thePlayer!.getRotation().z
             ))
 
         // remove timeout tanks
