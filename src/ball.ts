@@ -1,4 +1,4 @@
-import { Box3, BoxGeometry, Intersection, Mesh, MeshBasicMaterial, MeshStandardMaterial, Raycaster, ShortType, SphereGeometry, TriangleStripDrawMode, Vector3 } from "three";
+import { Box3, BoxGeometry, Camera, Intersection, Mesh, MeshBasicMaterial, MeshStandardMaterial, Raycaster, ShortType, SphereGeometry, TriangleStripDrawMode, Vector3 } from "three";
 import { generateUUID } from "three/src/math/MathUtils";
 import { game } from "./main";
 import { PacketKill, PacketRemoveBall } from "./packets";

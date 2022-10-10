@@ -127,7 +127,7 @@ export class Network {
     handlePos(packet: PakcetPos) {
         const tank = game.remoteTanks.find((t) => t.id === packet.id)
         if (tank === undefined) { // new tank
-            const new_tank = new Tank(game.tank!.clone(), false, packet.id)
+            const new_tank = new Tank(false, packet.id)
             new_tank.getPosition().set(packet.x, packet.y, packet.z)
             new_tank.getRotation().set(packet.rotationX, packet.rotationY, packet.rotationZ)
             new_tank.lastUpdate = this.existedTicks

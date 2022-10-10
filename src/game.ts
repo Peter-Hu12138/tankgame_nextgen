@@ -24,7 +24,7 @@ export class Game {
 
     public scene: Scene
     public camera: PerspectiveCamera
-    public tank: Group | undefined
+    public tankModel: Group | undefined
     private renderer: WebGLRenderer | undefined
 
     public alive = true
@@ -47,9 +47,6 @@ export class Game {
 
     private context: CanvasRenderingContext2D
     private canvas: HTMLCanvasElement
-
-    private zooming = false
-    private zoomHelper: Line | undefined
 
     public ranking = new Ranking()
     public name = "undefined"
@@ -95,7 +92,7 @@ export class Game {
 
     async load() {
         // tank model
-        this.tank = await loadTank()
+        this.tankModel = await loadTank()
 
         // renderer
         this.renderer = new WebGLRenderer()
@@ -197,52 +194,29 @@ export class Game {
     }
 
     onTick() {
+        // update balls
+        this.balls.forEach((ball) => {
+            ball.update()
+        })
+        this.remoteBalls.forEach((ball) => {
+            ball.update()
+        })
+
+        // update network
+        this.network.update()
+
+        // input chat
         if (this.chat.input) return
         if (this.keys.t) this.chat.input = true
 
         this.thePlayer!.update()
         this.thePlayer!.updateCamera()
 
-        // zoom
-        if (this.keys.c && !this.zooming) {
-            this.zooming = true
-            this.camera.zoom = 1.3
-            this.camera.updateProjectionMatrix()
-
-            const start = getShotPoint()
-            this.zoomHelper = new Line(new BufferGeometry().setFromPoints([
-                start.pos, getLandPoint()
-            ]), new LineBasicMaterial({ color: 0xff0000 }))
-            this.scene.add(this.zoomHelper)
-        }
-        if (!this.keys.c && this.zooming) {
-            this.zooming = false
-            this.camera.zoom = 1
-            this.camera.updateProjectionMatrix()
-            this.scene.remove(this.zoomHelper!)
-        }
-        if (this.zooming) {
-            const start = getShotPoint()
-            this.zoomHelper!.geometry.setFromPoints([
-                start.pos, getLandPoint()
-            ])
-        }
-
         // shot
         if (this.alive && this.keys.left && Date.now() - this.lastBall > BALL_DELAY) {
             this.lastBall = Date.now()
             shot()
         }
-
-        this.balls.forEach((ball) => {
-            ball.update()
-        })
-
-        this.remoteBalls.forEach((ball) => {
-            ball.update()
-        })
-
-        this.network.update()
 
         this.mouseX = 0
         this.mouseY = 0

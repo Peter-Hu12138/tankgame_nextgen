@@ -15,7 +15,7 @@ export class Tank extends Entity {
 
     constructor(clientSide: boolean, id: string) {
         super()
-        this.model = game.tank!.clone()
+        this.model = game.tankModel!.clone()
         this.clientSide = clientSide
         this.id = id
     }
