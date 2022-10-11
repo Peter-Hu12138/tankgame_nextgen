@@ -3,7 +3,7 @@ import { generateUUID } from "three/src/math/MathUtils";
 import { game } from "./main";
 import { PacketKill, PacketRemoveBall } from "./packets";
 
-const MOVE_SPEED = 1
+const MOVE_SPEED = 1.5
 const MAX_TICKS = 30 * 5
 
 export class Ball {
@@ -86,7 +86,7 @@ export class Ball {
     calcReflectPoint() {
         const raycaster = new Raycaster()
 
-        raycaster.set(this.pos, this.velocity.normalize())
+        raycaster.set(this.pos, this.velocity.clone().normalize())
         const intersections = raycaster.intersectObjects(game.mapObjects)
         if (intersections.length >= 1) {
             const closest = intersections[0]

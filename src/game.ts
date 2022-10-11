@@ -1,4 +1,4 @@
-import { AmbientLight, Box3, BufferGeometry, CameraHelper, DirectionalLight, DirectionalLightHelper, DirectionalLightShadow, Group, HemisphereLight, Line, LineBasicMaterial, Matrix4, Mesh, MeshPhongMaterial, MeshStandardMaterial, Object3D, PCFSoftShadowMap, PerspectiveCamera, Raycaster, Renderer, Scene, Vector3, WebGLRenderer } from "three";
+import { AmbientLight, Box3, BufferGeometry, CameraHelper, DirectionalLight, DirectionalLightHelper, DirectionalLightShadow, Group, HemisphereLight, Line, LineBasicMaterial, Matrix4, Mesh, MeshBasicMaterial, MeshPhongMaterial, MeshStandardMaterial, Object3D, PCFSoftShadowMap, PerspectiveCamera, Raycaster, Renderer, Scene, Vector3, WebGLRenderer } from "three";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 import { generateUUID } from "three/src/math/MathUtils";
 import { Ball } from "./ball";
@@ -51,6 +51,11 @@ export class Game {
     public ranking = new Ranking()
     public name = "undefined"
 
+    private zooming = false
+    private zoomHelper = new Line(new BufferGeometry().setFromPoints(
+        [new Vector3(), new Vector3()]
+    ), new LineBasicMaterial({ color: 0xff0000, linewidth: 3 }))
+
     public chat = new Chat()
 
     constructor() {
@@ -73,7 +78,6 @@ export class Game {
         directionalLight.shadow.radius = 4
         directionalLight.shadow.bias = -0.00006
         this.scene.add(directionalLight)
-        this.scene.add(new CameraHelper(directionalLight.shadow.camera))
 
         const hemisphereLight = new HemisphereLight(0x4488bb, 0x002244, 0.3)
         this.scene.add(hemisphereLight)
@@ -232,6 +236,29 @@ export class Game {
         if (this.alive && (this.keys.space || this.keys.left) && Date.now() - this.lastBall > BALL_DELAY) {
             this.lastBall = Date.now()
             this.thePlayer!.shot()
+        }
+
+        // zoom
+        if (this.keys.c && !this.zooming) {
+            this.camera.zoom = 1.5
+            this.camera.updateProjectionMatrix()
+            this.zooming = true
+            this.scene.add(this.zoomHelper)
+        }
+        if (!this.keys.c && this.zooming) {
+            this.camera.zoom = 1
+            this.camera.updateProjectionMatrix()
+            this.zooming = false
+            this.scene.remove(this.zoomHelper)
+        }
+        if (this.zooming) {
+            const point = this.thePlayer!.getShotPoint()
+            const start = point.pos
+            const end = start.clone().add(point.velocity.setLength(20))
+            this.zoomHelper.geometry.setFromPoints([
+                start, end
+            ])
+            this.zoomHelper.geometry.computeBoundingSphere()
         }
 
         this.mouseX = 0

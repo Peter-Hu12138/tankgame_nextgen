@@ -89,7 +89,7 @@ export class Tank extends Entity {
         }
     }
 
-    shot() {
+    getShotPoint() {
         const rotation = game.thePlayer!.getRotation()
         const velocity = new Vector3(
             -1 * Math.sin(rotation.y),
@@ -98,8 +98,15 @@ export class Tank extends Entity {
         )
         const pos = game.thePlayer!.getPosition().clone().add(velocity.clone().setLength(2))
         pos.y += 1.5
+        return {
+            pos: pos,
+            velocity: velocity.normalize()
+        }
+    }
 
-        const ball = new Ball(true, pos, velocity, generateUUID())
+    shot() {
+        const start = this.getShotPoint()
+        const ball = new Ball(true, start.pos, start.velocity, generateUUID())
         game.scene.add(ball.getMesh())
         game.balls.push(ball)
     }
