@@ -18,6 +18,7 @@ export abstract class Entity {
     abstract getModel(): Object3D
     abstract shot(): void
     abstract getShotPoint(): { pos: Vector3, velocity: Vector3 }
+    abstract randomPos(): void
 
     getId() {
         return this.id
@@ -41,19 +42,5 @@ export abstract class Entity {
         return collide
     }
 
-    randomPos() {
-        // random spawn point
-        while (true) {
-            const box3 = new Box3()
-            game.mapBoundingBoxes!.forEach((each) => box3.union((each)))
-            this.getPosition().set(
-                (box3.max.x - box3.min.x) * Math.random() + box3.min.x,
-                (box3.max.y - box3.min.y) * Math.random() + box3.min.y,
-                (box3.max.z - box3.min.z) * Math.random() + box3.min.z
-            )
-            let bb_tank = this.getBB()
-            if (!this.collisionCheck(bb_tank)) break
-        }
-    }
 
 }

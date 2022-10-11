@@ -1,4 +1,4 @@
-import { Vector3, Euler, Object3D, Event, Group, Camera } from "three";
+import { Vector3, Euler, Object3D, Event, Group, Camera, Box3 } from "three";
 import { generateUUID } from "three/src/math/MathUtils";
 import { Ball } from "./ball";
 import { Entity } from "./entity";
@@ -30,15 +30,14 @@ export class Plane extends Entity {
         )
         this.getPosition().add(velocity.setLength(MOVE_SPEED))
 
+        if (this.collisionCheck(this.getBB())) {
+            game.kill()
+            game.ranking.addDeath("You")
+        }
+
         // tank rotation
         rotation.y -= game.mouseX / 500
         rotation.x -= game.mouseY / 500
-    }
-
-    private move(x: number, z: number) {
-        if (!this.clientSide) return
-
-        this.getPosition().add(new Vector3(x, 0, z))
     }
 
     updateCamera(): void {
@@ -86,6 +85,21 @@ export class Plane extends Entity {
         return {
             pos: pos,
             velocity: velocity.normalize()
+        }
+    }
+
+    randomPos() {
+        // random spawn point
+        while (true) {
+            const box3 = new Box3()
+            game.mapBoundingBoxes!.forEach((each) => box3.union((each)))
+            this.getPosition().set(
+                (box3.max.x - box3.min.x) * Math.random() + box3.min.x,
+                box3.max.y + 30 * Math.random(),
+                (box3.max.z - box3.min.z) * Math.random() + box3.min.z
+            )
+            let bb_tank = this.getBB()
+            if (!this.collisionCheck(bb_tank)) break
         }
     }
 
