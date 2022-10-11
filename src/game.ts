@@ -1,4 +1,4 @@
-import { AmbientLight, Box3, BufferGeometry, CameraHelper, DirectionalLight, DirectionalLightShadow, Group, HemisphereLight, Line, LineBasicMaterial, Matrix4, Mesh, MeshPhongMaterial, MeshStandardMaterial, Object3D, PCFSoftShadowMap, PerspectiveCamera, Raycaster, Renderer, Scene, Vector3, WebGLRenderer } from "three";
+import { AmbientLight, Box3, BufferGeometry, CameraHelper, DirectionalLight, DirectionalLightHelper, DirectionalLightShadow, Group, HemisphereLight, Line, LineBasicMaterial, Matrix4, Mesh, MeshPhongMaterial, MeshStandardMaterial, Object3D, PCFSoftShadowMap, PerspectiveCamera, Raycaster, Renderer, Scene, Vector3, WebGLRenderer } from "three";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 import { generateUUID } from "three/src/math/MathUtils";
 import { Ball } from "./ball";
@@ -59,8 +59,8 @@ export class Game {
         this.camera.rotation.order = 'YXZ'
 
         // lights
-        const directionalLight = new DirectionalLight(0xffffff, 0.8)
-        directionalLight.position.set(-20, 25, -10)
+        const directionalLight = new DirectionalLight(0xffffff, 0.6)
+        directionalLight.position.set(-20, 50, -0)
         directionalLight.castShadow = true
         directionalLight.shadow.camera.near = 0.01
         directionalLight.shadow.camera.far = 500
@@ -73,6 +73,7 @@ export class Game {
         directionalLight.shadow.radius = 4
         directionalLight.shadow.bias = -0.00006
         this.scene.add(directionalLight)
+        this.scene.add(new CameraHelper(directionalLight.shadow.camera))
 
         const hemisphereLight = new HemisphereLight(0x4488bb, 0x002244, 0.3)
         this.scene.add(hemisphereLight)
