@@ -1,4 +1,6 @@
 import { Box3, Group, Vector3 } from "three";
+import { generateUUID } from "three/src/math/MathUtils";
+import { Ball } from "./ball";
 import { Entity } from "./entity";
 import { GRAVITY, MOVE_SPEED } from "./game";
 import { game } from "./main";
@@ -85,6 +87,21 @@ export class Tank extends Entity {
                 this.getPosition().add(new Vector3(x, CLIMB, 0))
 
         }
+    }
+
+    shot() {
+        const rotation = game.thePlayer!.getRotation()
+        const velocity = new Vector3(
+            -1 * Math.sin(rotation.y),
+            1 * Math.sin(game.camera.rotation.x),
+            -1 * Math.cos(rotation.y)
+        )
+        const pos = game.thePlayer!.getPosition().clone().add(velocity.clone().setLength(2))
+        pos.y += 1.5
+
+        const ball = new Ball(true, pos, velocity, generateUUID())
+        game.scene.add(ball.getMesh())
+        game.balls.push(ball)
     }
 
     getPosition() {

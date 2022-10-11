@@ -1,7 +1,7 @@
 import { AmbientLight, Box3, BufferGeometry, CameraHelper, DirectionalLight, DirectionalLightShadow, Group, HemisphereLight, Line, LineBasicMaterial, Matrix4, Mesh, MeshPhongMaterial, MeshStandardMaterial, Object3D, PCFSoftShadowMap, PerspectiveCamera, Raycaster, Renderer, Scene, Vector3, WebGLRenderer } from "three";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 import { generateUUID } from "three/src/math/MathUtils";
-import { Ball, getLandPoint, getShotPoint, shot } from "./ball";
+import { Ball } from "./ball";
 import { Chat } from "./chat";
 import { Entity } from "./entity";
 import { initBoundingBoxes, initMap } from "./map";
@@ -31,7 +31,7 @@ export class Game {
     public thePlayer: Entity | undefined
     public remoteTanks: Array<Tank> = []
 
-    private keys = { "w": false, "s": false, "space": false, "c": false, "left": false, "a": false, "d": false, "t": false }
+    private keys = { "w": false, "s": false, "space": false, "c": false, "left": false, "a": false, "d": false, "t": false, "aup": false, "aleft": false, "aright": false, "adown": false }
     public mouseX = 0
     public mouseY = 0
 
@@ -153,18 +153,22 @@ export class Game {
         this.thePlayer = new Tank(true, "")
         this.scene.add(this.thePlayer.getModel())
 
-        document.body.addEventListener("keydown", (e) => {
+        const updateKeys = (e: KeyboardEvent, pressed: boolean) => {
             if ((this.keys as any)[e.key] !== undefined)
-                (this.keys as any)[e.key] = true
+                (this.keys as any)[e.key] = pressed
             if (e.key === " ")
-                this.keys.space = true
+                this.keys.space = pressed
+            if (e.key.startsWith("Arrow")) {
+                (this.keys as any)["a" + e.key.replace("Arrow", "").toLowerCase()] = pressed
+            }
+        }
+
+        document.body.addEventListener("keydown", (e) => {
+            updateKeys(e, true)
             this.chat.onKeyPress(e)
         })
         document.body.addEventListener("keyup", (e) => {
-            if ((this.keys as any)[e.key] !== undefined)
-                (this.keys as any)[e.key] = false
-            if (e.key === " ")
-                this.keys.space = false
+            updateKeys(e, false)
         })
         document.body.addEventListener("mousemove", (e) => {
             this.mouseX += e.movementX
@@ -194,6 +198,17 @@ export class Game {
     }
 
     onTick() {
+        // using arrow keys to rotate
+        const ARROW_SPEED = 20
+        if (this.keys.aleft)
+            this.mouseX -= ARROW_SPEED
+        if (this.keys.aright)
+            this.mouseX += ARROW_SPEED
+        if (this.keys.aup)
+            this.mouseY -= ARROW_SPEED
+        if (this.keys.adown)
+            this.mouseY += ARROW_SPEED
+
         // update balls
         this.balls.forEach((ball) => {
             ball.update()
@@ -213,9 +228,9 @@ export class Game {
         this.thePlayer!.updateCamera()
 
         // shot
-        if (this.alive && this.keys.left && Date.now() - this.lastBall > BALL_DELAY) {
+        if (this.alive && (this.keys.space || this.keys.left) && Date.now() - this.lastBall > BALL_DELAY) {
             this.lastBall = Date.now()
-            shot()
+            this.thePlayer!.shot()
         }
 
         this.mouseX = 0

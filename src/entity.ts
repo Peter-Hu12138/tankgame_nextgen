@@ -8,6 +8,7 @@ export abstract class Entity {
     abstract getPosition(): Vector3
     abstract getRotation(): Euler
     abstract getModel(): Object3D
+    abstract shot(): void
 
     getBB() {
         let box = new Box3()
