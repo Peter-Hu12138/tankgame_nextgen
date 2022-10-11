@@ -13,7 +13,8 @@ import { Tank } from "./tank";
 export const TPS = 30
 export const MOVE_SPEED = 0.5
 export const GRAVITY = -0.5
-const ADDRESS = location.hostname === "127.0.0.1" ? "ws://127.0.0.1:8080" : `wss://${location.host}/tankgamews`
+//const ADDRESS = location.hostname === "127.0.0.1" ? `ws://${location.hostname}:8080` : `wss://${location.host}/tankgamews`
+const ADDRESS = `ws://${location.hostname}:8080`
 const BALL_DELAY = 500
 const RESPAWN = 3000
 
@@ -153,12 +154,19 @@ export class Game {
         this.alive = false
         setTimeout(() => {
             this.alive = true
+            this.scene.remove(this.thePlayer!.getModel())
+            if (Math.random() > 0.5) {
+                this.thePlayer = new Tank(true, "")
+            } else {
+                this.thePlayer = new Plane(true, "")
+            }
+            this.scene.add(this.thePlayer!.getModel())
             this.thePlayer!.randomPos()
         }, RESPAWN);
     }
 
     start() {
-        this.thePlayer = new Plane(true, "")
+        this.thePlayer = new Tank(true, "")
         this.scene.add(this.thePlayer.getModel())
 
         const updateKeys = (e: KeyboardEvent, pressed: boolean) => {

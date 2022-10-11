@@ -1,8 +1,10 @@
 import { Vector3 } from "three"
 import { generateUUID } from "three/src/math/MathUtils"
 import { Ball } from "./ball"
+import { Entity } from "./entity"
 import { game } from "./main"
 import { PacketBall, PacketChat, PacketDie, PacketKill, PacketRemoveBall, PacketRemoveTank, PacketSetName, PakcetPos } from "./packets"
+import { Plane } from "./plane"
 import { Tank } from "./tank"
 
 const TIMEOUT = 30 * 5
@@ -127,14 +129,18 @@ export class Network {
     handlePos(packet: PakcetPos) {
         const tank = game.remoteEntities.find((t) => t.getId() === packet.id)
         if (tank === undefined) { // new tank
-            const new_tank = new Tank(false, packet.id)
-            new_tank.getPosition().set(packet.x, packet.y, packet.z)
-            new_tank.getRotation().set(packet.rotationX, packet.rotationY, packet.rotationZ)
-            new_tank.lastUpdate = this.existedTicks
+            let new_entity: Entity
+            if (packet.type === "tank")
+                new_entity = new Tank(false, packet.id)
+            else
+                new_entity = new Plane(false, packet.id)
+            new_entity.getPosition().set(packet.x, packet.y, packet.z)
+            new_entity.getRotation().set(packet.rotationX, packet.rotationY, packet.rotationZ)
+            new_entity.lastUpdate = this.existedTicks
 
-            game.remoteEntities.push(new_tank)
-            game.scene.add(new_tank.getModel())
-            
+            game.remoteEntities.push(new_entity)
+            game.scene.add(new_entity.getModel())
+
             this.updateUsername()
         } else { // existing tank
             tank.lastUpdate = this.existedTicks
@@ -154,7 +160,8 @@ export class Network {
                 game.thePlayer!.getPosition().z,
                 game.thePlayer!.getRotation().x,
                 game.thePlayer!.getRotation().y,
-                game.thePlayer!.getRotation().z
+                game.thePlayer!.getRotation().z,
+                game.thePlayer! instanceof Tank ? "tank" : "plane"
             ))
 
         // remove timeout tanks
@@ -167,7 +174,7 @@ export class Network {
         })
 
     }
-    
+
     updateUsername() {
         this.send(new PacketSetName(game.name))
     }

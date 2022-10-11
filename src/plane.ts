@@ -95,7 +95,7 @@ export class Plane extends Entity {
             game.mapBoundingBoxes!.forEach((each) => box3.union((each)))
             this.getPosition().set(
                 (box3.max.x - box3.min.x) * Math.random() + box3.min.x,
-                box3.max.y + 30 * Math.random(),
+                box3.max.y + 20 + 30 * Math.random(),
                 (box3.max.z - box3.min.z) * Math.random() + box3.min.z
             )
             let bb_tank = this.getBB()

@@ -10,8 +10,9 @@ export class PakcetPos extends Packet {
     readonly rotationX: number
     readonly rotationY: number
     readonly rotationZ: number
+    readonly type: string
 
-    constructor(x: number, y: number, z: number, rotationX: number, rotationY: number, rotationZ: number) {
+    constructor(x: number, y: number, z: number, rotationX: number, rotationY: number, rotationZ: number, type: string) {
         super()
         this.x = x
         this.y = y
@@ -19,6 +20,7 @@ export class PakcetPos extends Packet {
         this.rotationX = rotationX
         this.rotationY = rotationY
         this.rotationZ = rotationZ
+        this.type = type
     }
     
 }
