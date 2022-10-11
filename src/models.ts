@@ -28,6 +28,15 @@ export async function loadTank() {
     return obj.clone()
 }
 
+export async function loadPlane() {
+    const obj = await load_obj("plane.obj")
+    obj.children.forEach((child) => {
+        (child as Mesh).material = new MeshPhongMaterial({ color: 0x00a000 })
+    })
+    obj.scale.set(0.5, 0.5, 0.5)
+    return obj.clone()
+}
+
 export async function loadMap() {
     let obj_map = await load_obj("map.obj")
     obj_map.applyMatrix4(new Matrix4().scale(new Vector3(2, 2, 2)))

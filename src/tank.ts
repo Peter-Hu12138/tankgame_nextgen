@@ -6,20 +6,15 @@ import { GRAVITY, MOVE_SPEED } from "./game";
 import { game } from "./main";
 
 export class Tank extends Entity {
-
-    readonly id: string
-
+    
     private model: Group
     private clientSide: boolean
     private onGround = false
 
-    public lastUpdate = 0
-
     constructor(clientSide: boolean, id: string) {
-        super()
+        super(id)
         this.model = game.tankModel!.clone()
         this.clientSide = clientSide
-        this.id = id
     }
 
     update() {
@@ -90,13 +85,13 @@ export class Tank extends Entity {
     }
 
     getShotPoint() {
-        const rotation = game.thePlayer!.getRotation()
+        const rotation = this.getRotation()
         const velocity = new Vector3(
             -1 * Math.sin(rotation.y),
             1 * Math.sin(game.camera.rotation.x),
             -1 * Math.cos(rotation.y)
         )
-        const pos = game.thePlayer!.getPosition().clone().add(velocity.clone().setLength(2))
+        const pos = this.getPosition().clone().add(velocity.clone().setLength(2))
         pos.y += 1.5
         return {
             pos: pos,

@@ -3,6 +3,14 @@ import { game } from "./main";
 
 export abstract class Entity {
 
+    private id: string
+
+    public lastUpdate = 0
+
+    constructor (id: string) {
+        this.id = id
+    }
+
     abstract update(): void
     abstract updateCamera(): void
     abstract getPosition(): Vector3
@@ -10,6 +18,10 @@ export abstract class Entity {
     abstract getModel(): Object3D
     abstract shot(): void
     abstract getShotPoint(): { pos: Vector3, velocity: Vector3 }
+
+    getId() {
+        return this.id
+    }
 
     getBB() {
         let box = new Box3()

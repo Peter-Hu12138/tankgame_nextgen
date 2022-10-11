@@ -1,13 +1,12 @@
-import { AmbientLight, Box3, BufferGeometry, CameraHelper, DirectionalLight, DirectionalLightHelper, DirectionalLightShadow, Group, HemisphereLight, Line, LineBasicMaterial, Matrix4, Mesh, MeshBasicMaterial, MeshPhongMaterial, MeshStandardMaterial, Object3D, PCFSoftShadowMap, PerspectiveCamera, Raycaster, Renderer, Scene, Vector3, WebGLRenderer } from "three";
-import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
-import { generateUUID } from "three/src/math/MathUtils";
+import { AmbientLight, Box3, BufferGeometry, DirectionalLight, Group, HemisphereLight, Line, LineBasicMaterial, Mesh, MeshPhongMaterial, Object3D, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from "three";
 import { Ball } from "./ball";
 import { Chat } from "./chat";
 import { Entity } from "./entity";
 import { initBoundingBoxes, initMap } from "./map";
-import { loadMap, loadTank } from "./models";
+import { loadMap, loadPlane, loadTank } from "./models";
 import { Network } from "./network";
-import { PacketDie, PacketKill, PacketRemoveTank, PacketSetName } from "./packets";
+import { PacketDie, PacketRemoveTank } from "./packets";
+import { Plane } from "./plane";
 import { Ranking } from "./ranking";
 import { Tank } from "./tank";
 
@@ -25,11 +24,12 @@ export class Game {
     public scene: Scene
     public camera: PerspectiveCamera
     public tankModel: Group | undefined
+    public planeModel: Group | undefined
     private renderer: WebGLRenderer | undefined
 
     public alive = true
     public thePlayer: Entity | undefined
-    public remoteTanks: Array<Tank> = []
+    public remoteEntities: Array<Entity> = []
 
     private keys = { "w": false, "s": false, "space": false, "c": false, "left": false, "a": false, "d": false, "t": false, "aup": false, "aleft": false, "aright": false, "adown": false }
     public mouseX = 0
@@ -98,6 +98,9 @@ export class Game {
     async load() {
         // tank model
         this.tankModel = await loadTank()
+        
+        // plane model
+        this.planeModel = await loadPlane()
 
         // renderer
         this.renderer = new WebGLRenderer()
@@ -155,7 +158,7 @@ export class Game {
     }
 
     start() {
-        this.thePlayer = new Tank(true, "")
+        this.thePlayer = new Plane(true, "")
         this.scene.add(this.thePlayer.getModel())
 
         const updateKeys = (e: KeyboardEvent, pressed: boolean) => {

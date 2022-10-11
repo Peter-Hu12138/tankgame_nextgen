@@ -89,10 +89,10 @@ export class Network {
     }
 
     handleRemoveTank(packet: PacketRemoveTank) {
-        game.remoteTanks = game.remoteTanks.filter((e) => {
-            if (e.id === packet.id)
+        game.remoteEntities = game.remoteEntities.filter((e) => {
+            if (e.getId() === packet.id)
                 game.scene.remove(e.getModel())
-            return e.id !== packet.id
+            return e.getId() !== packet.id
         })
     }
 
@@ -125,14 +125,14 @@ export class Network {
     }
 
     handlePos(packet: PakcetPos) {
-        const tank = game.remoteTanks.find((t) => t.id === packet.id)
+        const tank = game.remoteEntities.find((t) => t.getId() === packet.id)
         if (tank === undefined) { // new tank
             const new_tank = new Tank(false, packet.id)
             new_tank.getPosition().set(packet.x, packet.y, packet.z)
             new_tank.getRotation().set(packet.rotationX, packet.rotationY, packet.rotationZ)
             new_tank.lastUpdate = this.existedTicks
 
-            game.remoteTanks.push(new_tank)
+            game.remoteEntities.push(new_tank)
             game.scene.add(new_tank.getModel())
             
             this.updateUsername()
@@ -158,7 +158,7 @@ export class Network {
             ))
 
         // remove timeout tanks
-        game.remoteTanks = game.remoteTanks.filter((t) => {
+        game.remoteEntities = game.remoteEntities.filter((t) => {
             let valid = this.existedTicks - t.lastUpdate < TIMEOUT
             if (!valid) {
                 game.scene.remove(t.getModel())

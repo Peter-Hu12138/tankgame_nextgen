@@ -62,9 +62,9 @@ export class Ball {
         if (this.clientSide) {
             const box3 = new Box3()
             box3.expandByObject(this.mesh)
-            game.remoteTanks.forEach((remoteTank) => {
-                if (remoteTank.getBB().intersectsBox(box3)) {
-                    game.network.send(new PacketKill(remoteTank.id))
+            game.remoteEntities.forEach((remoteEntity) => {
+                if (remoteEntity.getBB().intersectsBox(box3)) {
+                    game.network.send(new PacketKill(remoteEntity.getId()))
                     game.ranking.addKill("You")
                     this.removeSelf()
                 }
