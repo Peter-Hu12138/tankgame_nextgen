@@ -30,9 +30,17 @@ export class Plane extends Entity {
         )
         this.getPosition().add(velocity.setLength(MOVE_SPEED))
 
-        if (this.collisionCheck(this.getBB())) {
-            game.kill()
-            game.ranking.addDeath("You")
+        if (game.alive && this.collisionCheck(this.getBB())) {
+            let collied = false
+            this.model.children.forEach((child) => {
+                let box = new Box3()
+                box.expandByObject(child)
+                if (this.collisionCheck(box)) collied = true
+            })
+            if (collied) {
+                game.kill()
+                game.ranking.addDeath("You")
+            }
         }
 
         // tank rotation
@@ -68,24 +76,7 @@ export class Plane extends Entity {
     }
 
     shot(): void {
-        const start = this.getShotPoint()
-        const ball = new Ball(true, start.pos, start.velocity, generateUUID())
-        game.scene.add(ball.getMesh())
-        game.balls.push(ball)
-    }
-
-    getShotPoint(): { pos: Vector3; velocity: Vector3; } {
-        const rotation = this.getRotation()
-        const velocity = new Vector3(
-            -1 * Math.sin(rotation.y),
-            1 * Math.sin(game.camera.rotation.x),
-            -1 * Math.cos(rotation.y)
-        )
-        const pos = this.getPosition().clone().add(velocity.clone().setLength(2))
-        return {
-            pos: pos,
-            velocity: velocity.normalize()
-        }
+        
     }
 
     randomPos() {

@@ -17,7 +17,6 @@ export abstract class Entity {
     abstract getRotation(): Euler
     abstract getModel(): Object3D
     abstract shot(): void
-    abstract getShotPoint(): { pos: Vector3, velocity: Vector3 }
     abstract randomPos(): void
 
     getId() {

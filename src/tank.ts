@@ -1,9 +1,11 @@
-import { Box3, Group, Vector3 } from "three";
+import { Box3, Group, Object3D, Raycaster, Vector3 } from "three";
 import { generateUUID } from "three/src/math/MathUtils";
 import { Ball } from "./ball";
 import { Entity } from "./entity";
 import { GRAVITY, MOVE_SPEED } from "./game";
 import { game } from "./main";
+
+const ROTATION_SPEED = 30
 
 export class Tank extends Entity {
     
@@ -22,16 +24,23 @@ export class Tank extends Entity {
 
         // tank position
         const rotation = this.getRotation()
-        if (game.getKeys().w)
+        if (game.getKeys().w || game.getKeys().s) {
+            if (game.getKeys().a) {
+                this.getRotation().y += (ROTATION_SPEED / 500) * (game.getKeys().w ? 1: -1)
+                game.camera.rotation.y += ROTATION_SPEED / 500 * (game.getKeys().w ? 1: -1)
+            }
+            if (game.getKeys().d) {
+                this.getRotation().y -= ROTATION_SPEED / 500 * (game.getKeys().w ? 1: -1)
+                game.camera.rotation.y -= ROTATION_SPEED / 500 * (game.getKeys().w ? 1: -1)
+            }
+        }
+        if (game.getKeys().w) {
             this.move(-MOVE_SPEED * Math.sin(rotation.y), -MOVE_SPEED * Math.cos(rotation.y))
-        if (game.getKeys().a)
-            this.move(0.5 * -MOVE_SPEED * Math.cos(rotation.y), 0.5 * MOVE_SPEED * Math.sin(rotation.y))
-        if (game.getKeys().s)
+        }
+        if (game.getKeys().s) {
             this.move(MOVE_SPEED * Math.sin(rotation.y), MOVE_SPEED * Math.cos(rotation.y))
-        if (game.getKeys().d)
-            this.move(0.5 * MOVE_SPEED * Math.cos(rotation.y), 0.5 * -MOVE_SPEED * Math.sin(rotation.y))
-        // tank rotation
-        rotation.y -= game.mouseX / 500
+        }
+        
 
         // falling
         let bb_tank = this.getBB().clone().translate(new Vector3(0, GRAVITY, 0))
@@ -52,7 +61,7 @@ export class Tank extends Entity {
         game.camera.position.set(position.x + 3 * Math.sin(rotation.y), position.y + 4, position.z + 3 * Math.cos(rotation.y))
 
         // camera rotation
-        game.camera.rotation.y = rotation.y
+        game.camera.rotation.y -= game.mouseX / 500
         game.camera.rotation.x -= game.mouseY / 500
     }
 
@@ -84,24 +93,22 @@ export class Tank extends Entity {
         }
     }
 
-    getShotPoint() {
-        const rotation = this.getRotation()
-        const velocity = new Vector3(
-            -1 * Math.sin(rotation.y),
-            1 * Math.sin(game.camera.rotation.x),
-            -1 * Math.cos(rotation.y)
-        )
-        const pos = this.getPosition().clone().add(velocity.clone().setLength(2))
-        pos.y += 1.5
-        return {
-            pos: pos,
-            velocity: velocity.normalize()
-        }
-    }
-
     shot() {
-        const start = this.getShotPoint()
-        const ball = new Ball(true, start.pos, start.velocity, generateUUID())
+        let velocity: Vector3
+        let pos = new Vector3(0, 1.5, -5)
+        pos.applyMatrix4(this.getModel().matrixWorld)
+
+        let rotation = game.camera.rotation.clone()
+
+        let raycaster = new Raycaster(game.camera.position, new Vector3(0, 0, -1).applyEuler(rotation))
+        let result = raycaster.intersectObjects(game.scene.children)
+        if (result.length > 0) {
+            velocity = result[0].point.clone().sub(pos).normalize()
+        } else {
+            velocity = new Vector3(0, 0, -0.01).applyEuler(rotation)
+        }
+
+        const ball = new Ball(true, pos, velocity, generateUUID())
         game.scene.add(ball.getMesh())
         game.balls.push(ball)
     }

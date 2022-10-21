@@ -13,8 +13,8 @@ import { Tank } from "./tank";
 export const TPS = 30
 export const MOVE_SPEED = 0.5
 export const GRAVITY = -0.5
-//const ADDRESS = location.hostname === "127.0.0.1" ? `ws://${location.hostname}:8080` : `wss://${location.host}/tankgamews`
-const ADDRESS = `ws://${location.hostname}:8080`
+const ADDRESS = location.hostname === "127.0.0.1" ? `ws://${location.hostname}:8080` : `wss://${location.host}/tankgamews`
+//const ADDRESS = `ws://${location.hostname}:8080`
 const BALL_DELAY = 500
 const RESPAWN = 3000
 
@@ -51,11 +51,6 @@ export class Game {
 
     public ranking = new Ranking()
     public name = "undefined"
-
-    private zooming = false
-    private zoomHelper = new Line(new BufferGeometry().setFromPoints(
-        [new Vector3(), new Vector3()]
-    ), new LineBasicMaterial({ color: 0xff0000, linewidth: 3 }))
 
     public chat = new Chat()
 
@@ -99,7 +94,7 @@ export class Game {
     async load() {
         // tank model
         this.tankModel = await loadTank()
-        
+
         // plane model
         this.planeModel = await loadPlane()
 
@@ -136,11 +131,21 @@ export class Game {
             this.context.fillStyle = "#ffffffff"
             this.context.fillText(text, this.canvas.width / 2 - this.context.measureText(text).width / 2, this.canvas.height / 2)
         }
+
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
+
+
+        this.context.strokeStyle = "#FF0000FF"
+        this.context.lineWidth = 2
+        this.context.beginPath()
+        this.context.arc(this.canvas.width / 2, this.canvas.height / 2, 5, 0, 2 * Math.PI)
+        this.context.stroke()
+
         this.ranking.onRender2D(this.context)
         if (!this.alive) {
             drawText("你死了")
         }
+
         this.chat.onRender2D(this.context, this.canvas.width, this.canvas.height)
         if (!this.network.isConnected()) {
             drawText("服务器连接丢失")
@@ -247,29 +252,6 @@ export class Game {
         if (this.alive && (this.keys.space || this.keys.left) && Date.now() - this.lastBall > BALL_DELAY) {
             this.lastBall = Date.now()
             this.thePlayer!.shot()
-        }
-
-        // zoom
-        if (this.keys.c && !this.zooming) {
-            this.camera.zoom = 1.5
-            this.camera.updateProjectionMatrix()
-            this.zooming = true
-            this.scene.add(this.zoomHelper)
-        }
-        if (!this.keys.c && this.zooming) {
-            this.camera.zoom = 1
-            this.camera.updateProjectionMatrix()
-            this.zooming = false
-            this.scene.remove(this.zoomHelper)
-        }
-        if (this.zooming) {
-            const point = this.thePlayer!.getShotPoint()
-            const start = point.pos
-            const end = start.clone().add(point.velocity.setLength(20))
-            this.zoomHelper.geometry.setFromPoints([
-                start, end
-            ])
-            this.zoomHelper.geometry.computeBoundingSphere()
         }
 
         this.mouseX = 0
