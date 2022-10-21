@@ -43,9 +43,19 @@ export class Plane extends Entity {
             }
         }
 
-        // tank rotation
-        rotation.y -= game.mouseX / 500
-        rotation.x -= game.mouseY / 500
+        // rotation
+        if (game.getKeys().w) {
+            this.getRotation().x += 30 / 500
+        }
+        if (game.getKeys().s) {
+            this.getRotation().x -= 30 / 500
+        }
+        if (game.getKeys().a) {
+            this.getRotation().y += 40 / 500
+        }
+        if (game.getKeys().d) {
+            this.getRotation().y -= 40 / 500
+        }
     }
 
     updateCamera(): void {
@@ -76,7 +86,17 @@ export class Plane extends Entity {
     }
 
     shot(): void {
-        
+        const rotation = this.getRotation()
+        const velocity = new Vector3(
+            -1 * Math.sin(rotation.y),
+            1 * Math.sin(game.camera.rotation.x),
+            -1 * Math.cos(rotation.y)
+        )
+        const pos = this.getPosition().clone().add(velocity.setLength(2))
+
+        const ball = new Ball(true, pos, velocity.add(velocity.clone().setLength(MOVE_SPEED)), generateUUID())
+        game.scene.add(ball.getMesh())
+        game.balls.push(ball)
     }
 
     randomPos() {
@@ -86,7 +106,7 @@ export class Plane extends Entity {
             game.mapBoundingBoxes!.forEach((each) => box3.union((each)))
             this.getPosition().set(
                 (box3.max.x - box3.min.x) * Math.random() + box3.min.x,
-                box3.max.y + 20 + 30 * Math.random(),
+                box3.max.y + 30 * Math.random(),
                 (box3.max.z - box3.min.z) * Math.random() + box3.min.z
             )
             let bb_tank = this.getBB()

@@ -1,4 +1,4 @@
-import { AmbientLight, Box3, BufferGeometry, DirectionalLight, Group, HemisphereLight, Line, LineBasicMaterial, Mesh, MeshPhongMaterial, Object3D, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from "three";
+import { AmbientLight, Box3, BufferGeometry, DirectionalLight, Group, HemisphereLight, MathUtils, Mesh, MeshPhongMaterial, Object3D, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from "three";
 import { Ball } from "./ball";
 import { Chat } from "./chat";
 import { Entity } from "./entity";
@@ -9,6 +9,7 @@ import { PacketDie, PacketRemoveTank } from "./packets";
 import { Plane } from "./plane";
 import { Ranking } from "./ranking";
 import { Tank } from "./tank";
+import { Sky } from "three/examples/jsm/objects/Sky"
 
 export const TPS = 30
 export const MOVE_SPEED = 0.5
@@ -89,6 +90,22 @@ export class Game {
         this.context = this.canvas.getContext("2d") as CanvasRenderingContext2D
         this.canvas.width = window.innerWidth
         this.canvas.height = window.innerHeight
+
+        // sky
+        const sky = new Sky()
+        sky.scale.setScalar(450000)
+        const uniforms = sky.material.uniforms
+        uniforms['turbidity'].value = 5
+        uniforms['rayleigh'].value = 3
+        uniforms['mieCoefficient'].value = 0.005
+        uniforms['mieDirectionalG'].value = 0.7
+        const sun = new Vector3()
+        const phi = MathUtils.degToRad(90 - 2)
+        const theta = MathUtils.degToRad(270)
+        sun.setFromSphericalCoords(1, phi, theta)
+        console.log(sun)
+        uniforms['sunPosition'].value.copy(sun)
+        this.scene.add(sky)
     }
 
     async load() {
