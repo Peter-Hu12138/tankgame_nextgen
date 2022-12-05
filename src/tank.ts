@@ -8,14 +8,19 @@ import { game } from "./main";
 const ROTATION_SPEED = 30
 
 export class Tank extends Entity {
-    
+
     private model: Group
+    private modelBottom: Group
+    private modelTop: Group
     private clientSide: boolean
     private onGround = false
 
     constructor(clientSide: boolean, id: string) {
         super(id)
-        this.model = game.tankModel!.clone()
+        this.modelBottom = game.tankModelBottom!.clone()
+        this.modelTop = game.tankModelTop!.clone()
+        this.model = new Group()
+        this.model.add(this.modelBottom, this.modelTop)
         this.clientSide = clientSide
     }
 
@@ -24,15 +29,13 @@ export class Tank extends Entity {
 
         // tank position
         const rotation = this.getRotation()
-        if (game.getKeys().w || game.getKeys().s) {
-            if (game.getKeys().a) {
-                this.getRotation().y += (ROTATION_SPEED / 500) * (game.getKeys().w ? 1: -1)
-                game.camera.rotation.y += ROTATION_SPEED / 500 * (game.getKeys().w ? 1: -1)
-            }
-            if (game.getKeys().d) {
-                this.getRotation().y -= ROTATION_SPEED / 500 * (game.getKeys().w ? 1: -1)
-                game.camera.rotation.y -= ROTATION_SPEED / 500 * (game.getKeys().w ? 1: -1)
-            }
+        if (game.getKeys().a) {
+            this.getRotation().y += ROTATION_SPEED / 500
+            game.camera.rotation.y += ROTATION_SPEED / 500
+        }
+        if (game.getKeys().d) {
+            this.getRotation().y -= ROTATION_SPEED / 500
+            game.camera.rotation.y -= ROTATION_SPEED / 500
         }
         if (game.getKeys().w) {
             this.move(-MOVE_SPEED * Math.sin(rotation.y), -MOVE_SPEED * Math.cos(rotation.y))
@@ -40,7 +43,7 @@ export class Tank extends Entity {
         if (game.getKeys().s) {
             this.move(MOVE_SPEED * Math.sin(rotation.y), MOVE_SPEED * Math.cos(rotation.y))
         }
-        
+
 
         // falling
         let bb_tank = this.getBB().clone().translate(new Vector3(0, GRAVITY, 0))
@@ -51,11 +54,17 @@ export class Tank extends Entity {
             this.onGround = true
         }
 
+        // top
+        this.modelTop.position.copy(this.getPosition())
+        const r = game.camera.rotation.clone()
+        r.x = 0
+        this.modelTop.rotation.copy(r)
+
     }
 
     updateCamera(): void {
-        const position = this.getPosition()
-        const rotation = this.getRotation()
+        const position = this.modelTop.position
+        const rotation = this.modelTop.rotation
 
         // camera position
         game.camera.position.set(position.x + 3 * Math.sin(rotation.y), position.y + 4, position.z + 3 * Math.cos(rotation.y))
@@ -96,7 +105,7 @@ export class Tank extends Entity {
     shot() {
         let velocity: Vector3
         let pos = new Vector3(0, 1.5, -5)
-        pos.applyMatrix4(this.getModel().matrixWorld)
+        pos.applyMatrix4(this.modelTop.matrixWorld)
 
         let rotation = game.camera.rotation.clone()
 
@@ -114,15 +123,15 @@ export class Tank extends Entity {
     }
 
     getPosition() {
-        return this.model.position
+        return this.modelBottom.position
     }
 
     getRotation() {
-        return this.model.rotation
+        return this.modelBottom.rotation
     }
 
     getModel() {
-        return this.model
+        return this.modelBottom
     }
 
     randomPos() {
@@ -138,6 +147,20 @@ export class Tank extends Entity {
             let bb_tank = this.getBB()
             if (!this.collisionCheck(bb_tank)) break
         }
+    }
+
+    removeEntity(): void {
+        game.scene.remove(this.modelBottom)
+        game.scene.remove(this.modelTop)
+    }
+
+    addEntity(): void {
+        game.scene.add(this.modelBottom)
+        game.scene.add(this.modelTop)
+    }
+
+    getModelTop() {
+        return this.modelTop
     }
 
 }

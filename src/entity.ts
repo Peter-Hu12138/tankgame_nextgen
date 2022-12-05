@@ -18,6 +18,8 @@ export abstract class Entity {
     abstract getModel(): Object3D
     abstract shot(): void
     abstract randomPos(): void
+    abstract removeEntity(): void
+    abstract addEntity(): void
 
     getId() {
         return this.id

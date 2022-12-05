@@ -19,8 +19,17 @@ const load_obj = (name: string) => {
     })
 }
 
-export async function loadTank() {
-    const obj = await load_obj("tank.obj")
+export async function loadTankBottom() {
+    const obj = await load_obj("tank_bottom.obj")
+    obj.children.forEach((child) => {
+        (child as Mesh).material = new MeshPhongMaterial({ color: 0x00a000 })
+    })
+    obj.scale.set(0.5, 0.5, 0.5)
+    return obj.clone()
+}
+
+export async function loadTankTop() {
+    const obj = await load_obj("tank_top.obj")
     obj.children.forEach((child) => {
         (child as Mesh).material = new MeshPhongMaterial({ color: 0x00a000 })
     })

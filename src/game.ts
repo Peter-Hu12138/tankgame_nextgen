@@ -3,7 +3,7 @@ import { Ball } from "./ball";
 import { Chat } from "./chat";
 import { Entity } from "./entity";
 import { initBoundingBoxes, initMap } from "./map";
-import { loadMap, loadPlane, loadTank } from "./models";
+import { loadMap, loadPlane, loadTankBottom, loadTankTop } from "./models";
 import { Network } from "./network";
 import { PacketDie, PacketRemoveTank } from "./packets";
 import { Plane } from "./plane";
@@ -14,7 +14,7 @@ import { Sky } from "three/examples/jsm/objects/Sky"
 export const TPS = 30
 export const MOVE_SPEED = 0.5
 export const GRAVITY = -0.5
-const ADDRESS = location.hostname === "127.0.0.1" ? `ws://${location.hostname}:8080` : `wss://${location.host}/tankgamews`
+const ADDRESS = location.hostname === "localhost" ? `ws://${location.hostname}:8080` : `wss://${location.host}/tankgamews`
 //const ADDRESS = `ws://${location.hostname}:8080`
 const BALL_DELAY = 500
 const RESPAWN = 3000
@@ -25,7 +25,8 @@ export class Game {
 
     public scene: Scene
     public camera: PerspectiveCamera
-    public tankModel: Group | undefined
+    public tankModelBottom: Group | undefined
+    public tankModelTop: Group | undefined
     public planeModel: Group | undefined
     private renderer: WebGLRenderer | undefined
 
@@ -110,7 +111,8 @@ export class Game {
 
     async load() {
         // tank model
-        this.tankModel = await loadTank()
+        this.tankModelBottom = await loadTankBottom()
+        this.tankModelTop = await loadTankTop()
 
         // plane model
         this.planeModel = await loadPlane()
@@ -176,20 +178,20 @@ export class Game {
         this.alive = false
         setTimeout(() => {
             this.alive = true
-            this.scene.remove(this.thePlayer!.getModel())
+            this.thePlayer!.removeEntity()
             if (Math.random() > 0.5) {
                 this.thePlayer = new Tank(true, "")
             } else {
                 this.thePlayer = new Plane(true, "")
             }
-            this.scene.add(this.thePlayer!.getModel())
+            this.thePlayer!.addEntity()
             this.thePlayer!.randomPos()
         }, RESPAWN);
     }
 
     start() {
         this.thePlayer = new Tank(true, "")
-        this.scene.add(this.thePlayer.getModel())
+        this.thePlayer.addEntity()
 
         const updateKeys = (e: KeyboardEvent, pressed: boolean) => {
             if ((this.keys as any)[e.key] !== undefined)

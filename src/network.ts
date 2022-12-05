@@ -3,7 +3,7 @@ import { generateUUID } from "three/src/math/MathUtils"
 import { Ball } from "./ball"
 import { Entity } from "./entity"
 import { game } from "./main"
-import { PacketBall, PacketChat, PacketDie, PacketKill, PacketRemoveBall, PacketRemoveTank, PacketSetName, PakcetPos } from "./packets"
+import { PacketBall, PacketChat, PacketDie, PacketKill, PacketRemoveBall, PacketRemoveTank, PacketSetName, PakcetTankPos, PakcetPlanePos } from "./packets"
 import { Plane } from "./plane"
 import { Tank } from "./tank"
 
@@ -42,8 +42,11 @@ export class Network {
         let packet = JSON.parse(msg)
         if (packet.id === this.id) return
         switch (packet.action) {
+            case "tankpos":
+                this.handleTankPos(packet as PakcetTankPos)
+                break
             case "pos":
-                this.handlePos(packet as PakcetPos)
+                this.handlePlanePos(packet as PakcetPlanePos)
                 break
             case "ball":
                 this.handleBall(packet as PacketBall)
@@ -93,7 +96,7 @@ export class Network {
     handleRemoveTank(packet: PacketRemoveTank) {
         game.remoteEntities = game.remoteEntities.filter((e) => {
             if (e.getId() === packet.id)
-                game.scene.remove(e.getModel())
+                e.removeEntity()
             return e.getId() !== packet.id
         })
     }
@@ -126,23 +129,40 @@ export class Network {
         }
     }
 
-    handlePos(packet: PakcetPos) {
-        const tank = game.remoteEntities.find((t) => t.getId() === packet.id)
+    handleTankPos(packet: PakcetTankPos) {
+        const tank = (game.remoteEntities.find((t) => t.getId() === packet.id) as Tank)
         if (tank === undefined) { // new tank
-            let new_entity: Entity
-            if (packet.type === "tank")
-                new_entity = new Tank(false, packet.id)
-            else
-                new_entity = new Plane(false, packet.id)
+            let new_entity = new Tank(false, packet.id)
             new_entity.getPosition().set(packet.x, packet.y, packet.z)
             new_entity.getRotation().set(packet.rotationX, packet.rotationY, packet.rotationZ)
             new_entity.lastUpdate = this.existedTicks
 
             game.remoteEntities.push(new_entity)
-            game.scene.add(new_entity.getModel())
+            new_entity.addEntity()
 
             this.updateUsername()
         } else { // existing tank
+            tank.lastUpdate = this.existedTicks
+            tank.getPosition().set(packet.x, packet.y, packet.z)
+            tank.getRotation().set(packet.rotationX, packet.rotationY, packet.rotationZ)
+            tank.getModelTop().position.set(packet.x, packet.y, packet.z)
+            tank.getModelTop().rotation.set(packet.rotationTopX, packet.rotationTopY, packet.rotationTopZ)
+        }
+    }
+
+    handlePlanePos(packet: PakcetPlanePos) {
+        const tank = (game.remoteEntities.find((t) => t.getId() === packet.id) as Plane)
+        if (tank === undefined) { // new plane
+            let new_entity = new Plane(false, packet.id)
+            new_entity.getPosition().set(packet.x, packet.y, packet.z)
+            new_entity.getRotation().set(packet.rotationX, packet.rotationY, packet.rotationZ)
+            new_entity.lastUpdate = this.existedTicks
+
+            game.remoteEntities.push(new_entity)
+            new_entity.addEntity()
+
+            this.updateUsername()
+        } else { // existing plane
             tank.lastUpdate = this.existedTicks
             tank.getPosition().set(packet.x, packet.y, packet.z)
             tank.getRotation().set(packet.rotationX, packet.rotationY, packet.rotationZ)
@@ -154,15 +174,30 @@ export class Network {
         if (this.existedTicks % 2 !== 0) return
 
         if (game.alive)
-            this.send(new PakcetPos(
-                game.thePlayer!.getPosition().x,
-                game.thePlayer!.getPosition().y,
-                game.thePlayer!.getPosition().z,
-                game.thePlayer!.getRotation().x,
-                game.thePlayer!.getRotation().y,
-                game.thePlayer!.getRotation().z,
-                game.thePlayer! instanceof Tank ? "tank" : "plane"
-            ))
+            if (game.thePlayer! instanceof Tank) {
+                const thePlayer = (game.thePlayer! as Tank)
+                this.send(new PakcetTankPos(
+                    thePlayer.getPosition().x,
+                    thePlayer.getPosition().y,
+                    thePlayer.getPosition().z,
+                    thePlayer.getRotation().x,
+                    thePlayer.getRotation().y,
+                    thePlayer.getRotation().z,
+                    thePlayer.getModelTop().rotation.x,
+                    thePlayer.getModelTop().rotation.y,
+                    thePlayer.getModelTop().rotation.z
+                ))
+            } else {
+                const thePlayer = (game.thePlayer! as Plane)
+                this.send(new PakcetPlanePos(
+                    thePlayer.getPosition().x,
+                    thePlayer.getPosition().y,
+                    thePlayer.getPosition().z,
+                    thePlayer.getRotation().x,
+                    thePlayer.getRotation().y,
+                    thePlayer.getRotation().z
+                ))
+            }
 
         // remove timeout tanks
         game.remoteEntities = game.remoteEntities.filter((t) => {

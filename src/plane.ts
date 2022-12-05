@@ -114,4 +114,12 @@ export class Plane extends Entity {
         }
     }
 
+
+    removeEntity(): void {
+        game.scene.remove(this.getModel())
+    }
+    addEntity(): void {
+        game.scene.add(this.getModel())
+    }
+
 }
