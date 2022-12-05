@@ -1,5 +1,6 @@
 import { Group, Matrix4, Mesh, MeshPhongMaterial, Vector3 } from "three";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
 const load_obj = (name: string) => {
     return new Promise<Group>((resolve, reject) => {
@@ -16,6 +17,15 @@ const load_obj = (name: string) => {
                 reject(err)
             }
         )
+    })
+}
+
+const laod_glft = (name: string) => {
+    return new Promise<Group>((resolve) => {
+        const loader = new GLTFLoader()
+        loader.load(name, (obj) => {
+            resolve(obj.scene)
+        })
     })
 }
 
@@ -47,7 +57,5 @@ export async function loadPlane() {
 }
 
 export async function loadMap() {
-    let obj_map = await load_obj("map.obj")
-    obj_map.applyMatrix4(new Matrix4().scale(new Vector3(2, 2, 2)))
-    return obj_map
+    return await load_obj("map.obj")
 }
