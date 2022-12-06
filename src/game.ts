@@ -104,7 +104,6 @@ export class Game {
         const phi = MathUtils.degToRad(90 - 2)
         const theta = MathUtils.degToRad(270)
         sun.setFromSphericalCoords(1, phi, theta)
-        console.log(sun)
         uniforms['sunPosition'].value.copy(sun)
         this.scene.add(sky)
     }

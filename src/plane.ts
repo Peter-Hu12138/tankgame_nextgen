@@ -28,6 +28,7 @@ export class Plane extends Entity {
 
         this.getPosition().add(velocity.setLength(MOVE_SPEED))
 
+        // wall check
         if (game.alive && this.collisionCheck(this.getBB())) {
             let collied = false
             this.model.children.forEach((child) => {
