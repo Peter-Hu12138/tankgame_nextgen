@@ -30,12 +30,12 @@ export class Tank extends Entity {
         // tank position
         const rotation = this.getRotation()
         if (game.getKeys().a) {
-            this.getRotation().y += ROTATION_SPEED / 500
-            game.camera.rotation.y += ROTATION_SPEED / 500
+            this.getRotation().y += ROTATION_SPEED / 500 * (game.getKeys().s ? -1 : 1)
+            game.camera.rotation.y += ROTATION_SPEED / 500 * (game.getKeys().s ? -1 : 1)
         }
         if (game.getKeys().d) {
-            this.getRotation().y -= ROTATION_SPEED / 500
-            game.camera.rotation.y -= ROTATION_SPEED / 500
+            this.getRotation().y -= ROTATION_SPEED / 500 * (game.getKeys().s ? -1 : 1)
+            game.camera.rotation.y -= ROTATION_SPEED / 500 * (game.getKeys().s ? -1 : 1)
         }
         if (game.getKeys().w) {
             this.move(-MOVE_SPEED * Math.sin(rotation.y), -MOVE_SPEED * Math.cos(rotation.y))
