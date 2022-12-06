@@ -1,4 +1,4 @@
-import { Vector3, Euler, Object3D, Event, Group, Camera, Box3 } from "three";
+import { Vector3, Euler, Object3D, Event, Group, Camera, Box3, Quaternion } from "three";
 import { generateUUID } from "three/src/math/MathUtils";
 import { Ball } from "./ball";
 import { Entity } from "./entity";
@@ -23,11 +23,9 @@ export class Plane extends Entity {
 
         // move foward
         const rotation = this.getRotation()
-        const velocity = new Vector3(
-            -1 * Math.sin(rotation.y),
-            0.5 * Math.sin(rotation.x),
-            -1 * Math.cos(rotation.y)
-        )
+        const velocity = new Vector3(0, 0, -1)
+        velocity.applyEuler(rotation)
+
         this.getPosition().add(velocity.setLength(MOVE_SPEED))
 
         if (game.alive && this.collisionCheck(this.getBB())) {
@@ -43,19 +41,11 @@ export class Plane extends Entity {
             }
         }
 
+
         // rotation
-        if (game.getKeys().w) {
-            this.getRotation().x += 30 / 500
-        }
-        if (game.getKeys().s) {
-            this.getRotation().x -= 30 / 500
-        }
-        if (game.getKeys().a) {
-            this.getRotation().y += 40 / 500
-        }
-        if (game.getKeys().d) {
-            this.getRotation().y -= 40 / 500
-        }
+        let euler = new Euler((game.getKeys().w ? 0.06 : 0) + (game.getKeys().s ? -0.04 : 0), 0, (game.getKeys().a ? 0.05 : 0) + (game.getKeys().d ? -0.05 : 0))
+
+        this.rotate(euler)
     }
 
     updateCamera(): void {
@@ -64,12 +54,11 @@ export class Plane extends Entity {
 
         // camera position
         const offset = new Vector3(0, 8, 15)
-        offset.applyMatrix4(this.model.matrixWorld)
+        offset.applyMatrix4(this.model.matrix)
         game.camera.position.copy(offset)
 
         // camera rotation
-        game.camera.rotation.y = rotation.y
-        game.camera.rotation.x = rotation.x
+        game.camera.setRotationFromEuler(this.getRotation())
 
     }
 
@@ -81,17 +70,24 @@ export class Plane extends Entity {
         return this.model.rotation
     }
 
+    rotate(euler: Euler) {
+        let rot = new Quaternion
+        rot.setFromEuler(euler)
+
+        rot = this.model.quaternion.multiply(rot)
+
+        this.model.setRotationFromQuaternion(rot)
+    }
+
     getModel(): Object3D<Event> {
         return this.model
     }
 
     shot(): void {
         const rotation = this.getRotation()
-        const velocity = new Vector3(
-            -1 * Math.sin(rotation.y),
-            1 * Math.sin(game.camera.rotation.x),
-            -1 * Math.cos(rotation.y)
-        )
+        const velocity = new Vector3(0, 0, -1)
+        velocity.applyEuler(this.getRotation())
+
         const pos = this.getPosition().clone().add(velocity.setLength(2))
 
         const ball = new Ball(true, pos, velocity.add(velocity.clone().setLength(MOVE_SPEED)), generateUUID())

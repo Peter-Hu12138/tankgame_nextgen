@@ -190,7 +190,7 @@ export class Game {
     }
 
     start() {
-        this.thePlayer = new Tank(true, "")
+        this.thePlayer = new Plane(true, "")
         this.thePlayer.addEntity()
 
         const updateKeys = (e: KeyboardEvent, pressed: boolean) => {

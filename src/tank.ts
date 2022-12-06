@@ -72,6 +72,7 @@ export class Tank extends Entity {
         // camera rotation
         game.camera.rotation.y -= game.mouseX / 500
         game.camera.rotation.x -= game.mouseY / 500
+        game.camera.rotation.z = 0
     }
 
     private move(x: number, z: number) {
