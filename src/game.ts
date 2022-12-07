@@ -1,4 +1,4 @@
-import { AmbientLight, Box3, BufferGeometry, DirectionalLight, Group, HemisphereLight, MathUtils, Mesh, MeshPhongMaterial, Object3D, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from "three";
+import { AmbientLight, Box3, BufferGeometry, Clock, DirectionalLight, Group, HemisphereLight, MathUtils, Mesh, MeshPhongMaterial, Object3D, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from "three";
 import { Ball } from "./ball";
 import { Chat } from "./chat";
 import { Entity } from "./entity";
@@ -10,6 +10,7 @@ import { Plane } from "./plane";
 import { Ranking } from "./ranking";
 import { Tank } from "./tank";
 import { Sky } from "three/examples/jsm/objects/Sky"
+import { Touch } from "./touch";
 
 export const TPS = 30
 export const MOVE_SPEED = 0.5
@@ -44,7 +45,6 @@ export class Game {
 
     public balls: Array<Ball> = []
     public remoteBalls: Array<Ball> = []
-    private lastBall = 0
 
     public network: Network
 
@@ -55,6 +55,8 @@ export class Game {
     public name = "undefined"
 
     public chat = new Chat()
+
+    private touch!: Touch
 
     constructor() {
         this.scene = new Scene()
@@ -152,19 +154,23 @@ export class Game {
 
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
 
-
+        // pointer
         this.context.strokeStyle = "#FF0000FF"
         this.context.lineWidth = 2
         this.context.beginPath()
         this.context.arc(this.canvas.width / 2, this.canvas.height / 2, 5, 0, 2 * Math.PI)
         this.context.stroke()
-
+        // ranking
         this.ranking.onRender2D(this.context)
+        // joystick
+        this.touch.onRender2D(this.context)
+        // death
         if (!this.alive) {
             drawText("你死了")
         }
-
+        // chat
         this.chat.onRender2D(this.context, this.canvas.width, this.canvas.height)
+        // network
         if (!this.network.isConnected()) {
             drawText("服务器连接丢失")
         }
@@ -175,6 +181,8 @@ export class Game {
         this.network.send(new PacketDie())
         this.network.send(new PacketRemoveTank())
         this.alive = false
+
+        // respawn
         setTimeout(() => {
             this.alive = true
             this.thePlayer!.removeEntity()
@@ -202,6 +210,7 @@ export class Game {
             }
         }
 
+        // controls
         document.body.addEventListener("keydown", (e) => {
             updateKeys(e, true)
             this.chat.onKeyPress(e)
@@ -210,8 +219,10 @@ export class Game {
             updateKeys(e, false)
         })
         document.body.addEventListener("mousemove", (e) => {
-            this.mouseX += e.movementX
-            this.mouseY += e.movementY
+            if (!this.touch.isEnabled()) {
+                this.mouseX += e.movementX
+                this.mouseY += e.movementY
+            }
         })
         document.body.addEventListener("mousedown", () => {
             if (document.pointerLockElement === document.body) this.keys.left = true
@@ -220,19 +231,29 @@ export class Game {
             if (document.pointerLockElement === document.body) this.keys.left = false
         })
         this.canvas.onclick = () => {
-            document.body.requestPointerLock()
+            if (!this.touch.isEnabled())
+                document.body.requestPointerLock()
         }
-        document.getElementById("btn")?.addEventListener("click", () => {
+
+        // set username
+        document.getElementById("btn_name")?.addEventListener("click", () => {
             let name = prompt("Username:")
             if (name !== null) this.name = (name.length < 20 ? name : "我妈死了 我要炸房")
             this.network.updateUsername()
         })
 
+        // touch screen
+        this.touch = new Touch(document.getElementById("2d") as HTMLCanvasElement)
+        document.getElementById("btn_touch")?.addEventListener("click", () => {
+            this.touch.enable()
+        })
+
+        // game loop
         setInterval(() => this.onTick(), 1000 / TPS)
         requestAnimationFrame(() => this.onRender())
 
         this.network.connect()
-        this.thePlayer!.randomPos()
+        this.thePlayer!.randomPos() // spawn player
 
     }
 
@@ -263,12 +284,15 @@ export class Game {
         if (this.chat.input) return
         if (this.keys.t) this.chat.input = true
 
+        // joystick input
+        this.touch.update()
+
+        // update
         this.thePlayer!.update()
         this.thePlayer!.updateCamera()
 
         // shot
-        if (this.alive && (this.keys.space || this.keys.left) && Date.now() - this.lastBall > BALL_DELAY) {
-            this.lastBall = Date.now()
+        if (this.alive && (this.keys.space || this.keys.left)) {
             this.thePlayer!.shot()
         }
 

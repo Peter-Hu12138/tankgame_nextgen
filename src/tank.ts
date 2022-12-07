@@ -1,4 +1,4 @@
-import { Box3, Group, Object3D, Raycaster, Vector3 } from "three";
+import { Box3, Clock, Group, Object3D, Raycaster, Vector3 } from "three";
 import { generateUUID } from "three/src/math/MathUtils";
 import { Ball } from "./ball";
 import { Entity } from "./entity";
@@ -6,6 +6,7 @@ import { GRAVITY, MOVE_SPEED } from "./game";
 import { game } from "./main";
 
 const ROTATION_SPEED = 30
+const SHOT_DELAY = 500
 
 export class Tank extends Entity {
 
@@ -14,6 +15,8 @@ export class Tank extends Entity {
     private modelTop: Group
     private clientSide: boolean
     private onGround = false
+
+    private lastShot = 0
 
     constructor(clientSide: boolean, id: string) {
         super(id)
@@ -109,6 +112,9 @@ export class Tank extends Entity {
     }
 
     shot() {
+        if (Date.now() - this.lastShot < SHOT_DELAY) return
+        this.lastShot = Date.now()
+        
         let velocity: Vector3
         let pos = new Vector3(0, 1.5, -5)
         pos.applyMatrix4(this.modelTop.matrixWorld)

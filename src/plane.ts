@@ -5,11 +5,14 @@ import { Entity } from "./entity";
 import { game } from "./main";
 
 const MOVE_SPEED = 0.8
+const SHOT_DELAY = 300
 
 export class Plane extends Entity {
 
     private model: Group
     private clientSide: boolean
+
+    private lastShot = 0
 
     constructor(clientSide: boolean, id: string) {
         super(id)
@@ -85,7 +88,9 @@ export class Plane extends Entity {
     }
 
     shot(): void {
-        const rotation = this.getRotation()
+        if (Date.now() - this.lastShot < SHOT_DELAY) return
+        this.lastShot = Date.now()
+
         const velocity = new Vector3(0, 0, -1)
         velocity.applyEuler(this.getRotation())
 
