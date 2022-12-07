@@ -33,7 +33,7 @@ export class Chat {
             ctx.fillRect(0, 0, w, h)
 
             ctx.font = '24px serif'
-            let y = h - ctx.measureText(this.msg).fontBoundingBoxAscent
+            let y = h - ctx.measureText(this.msg).actualBoundingBoxAscent
             ctx.fillStyle = "#ffffffff"
             ctx.fillText(this.msg, 0, y)
         }
@@ -66,7 +66,7 @@ export class Chat {
         }
 
         text.split("\n").forEach((l) => {
-            this.y += ctx.measureText(text).fontBoundingBoxAscent
+            this.y += ctx.measureText(text).actualBoundingBoxAscent
             ctx.fillText(l, w * 0.8, this.y)
         })
     }

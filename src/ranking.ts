@@ -59,7 +59,8 @@ export class Ranking {
 
     writeLine(ctx: CanvasRenderingContext2D, text: string) {
         ctx.font = '24px serif'
-        this.y += ctx.measureText(text).fontBoundingBoxAscent
+        const measureText = ctx.measureText(text)
+        this.y += measureText.actualBoundingBoxAscent
         ctx.fillStyle = "#ffffffff"
         ctx.fillText(text, 0, this.y)
     }

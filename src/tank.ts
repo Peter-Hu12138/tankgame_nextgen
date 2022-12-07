@@ -61,7 +61,7 @@ export class Tank extends Entity {
         this.modelTop.rotation.copy(r)
 
         // void check
-        if (this.getPosition().y < -10) {
+        if (game.alive && this.getPosition().y < -10) {
             game.kill()
             game.ranking.addDeath("You")
         }
