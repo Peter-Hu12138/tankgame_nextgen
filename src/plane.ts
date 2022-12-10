@@ -49,7 +49,7 @@ export class Plane extends Entity {
         // rotation
         let euler = new Euler((game.getKeys().w ? 0.06 : 0) + (game.getKeys().s ? -0.04 : 0), 0, (game.getKeys().a ? 0.05 : 0) + (game.getKeys().d ? -0.05 : 0))
 
-        this.rotate(euler)
+        this.rotateByEuler(euler)
     }
 
     updateCamera(): void {
@@ -62,7 +62,7 @@ export class Plane extends Entity {
         game.camera.position.copy(offset)
 
         // camera rotation
-        game.camera.setRotationFromEuler(this.getRotation())
+        game.camera.setRotationFromQuaternion(this.model.quaternion)
 
     }
 
@@ -74,7 +74,7 @@ export class Plane extends Entity {
         return this.model.rotation
     }
 
-    rotate(euler: Euler) {
+    rotateByEuler(euler: Euler) {
         let rot = new Quaternion
         rot.setFromEuler(euler)
 
@@ -92,7 +92,7 @@ export class Plane extends Entity {
         this.lastShot = Date.now()
 
         const velocity = new Vector3(0, 0, -1)
-        velocity.applyEuler(this.getRotation())
+        velocity.applyQuaternion(this.model.quaternion)
 
         const pos = this.getPosition().clone().add(velocity.setLength(2))
 
