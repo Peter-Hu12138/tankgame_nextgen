@@ -8,7 +8,7 @@ Tank game is a simple 3D multiplayer game written in TypeScirpt.
 
 # How to play
 - `WASD` to move around
-- `Space bar` to shot
+- `Space bar` or `Left click` to shot
 - `Mouse` or `Arraw keys` to look around
 - `T` to open chat screen and `Enter` to send message
 - Click `Touch screen` at top-right of the screen to enable touch screen support for mobile devices
