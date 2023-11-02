@@ -1,6 +1,12 @@
 # Tank Game Nextgen
 Tank game is a simple 3D multiplayer game written in TypeScirpt.
 
+# Screenshots
+
+![Tank](https://github.com/sduoduo233/tankgame_nextgen/raw/master/screenshots/1.png)
+![Plane 1](https://github.com/sduoduo233/tankgame_nextgen/raw/master/screenshots/1.png)
+![Plane 2](https://github.com/sduoduo233/tankgame_nextgen/raw/master/screenshots/1.png)
+
 # Demo server
 [https://us2.1000005.xyz/tankgame/](https://us2.1000005.xyz/tankgame/)
 
