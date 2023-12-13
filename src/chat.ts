@@ -32,10 +32,16 @@ export class Chat {
             ctx.fillStyle = "#00000080"
             ctx.fillRect(0, 0, w, h)
 
+            // blinking cursor
+            let t = this.msg
+            if (Math.floor(Date.now() / 1000 * 3) % 2 === 0) {
+                t += "_"
+            }
+
             ctx.font = '24px serif'
-            let y = h - ctx.measureText(this.msg).actualBoundingBoxAscent
+            let y = h - ctx.measureText("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz").actualBoundingBoxAscent
             ctx.fillStyle = "#ffffffff"
-            ctx.fillText(this.msg, 0, y)
+            ctx.fillText(t, 0, y)
         }
 
         this.y = 50
