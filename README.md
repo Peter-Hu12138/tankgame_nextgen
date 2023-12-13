@@ -7,11 +7,6 @@ Tank game is a simple 3D multiplayer game written in TypeScirpt.
 ![Plane 1](https://github.com/sduoduo233/tankgame_nextgen/raw/master/screenshots/2.png)
 ![Plane 2](https://github.com/sduoduo233/tankgame_nextgen/raw/master/screenshots/3.png)
 
-# Demo server
-[https://us2.1000005.xyz/tankgame/](https://us2.1000005.xyz/tankgame/)
-
-(This is hosted on a very cheap VSP, so please expect it to go offline any time)
-
 # How to play
 - `WASD` to move around
 - `Space bar` or `Left click` to shot
