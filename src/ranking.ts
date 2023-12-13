@@ -44,6 +44,7 @@ export class Ranking {
 
     onRender2D(ctx: CanvasRenderingContext2D) {
         this.y = 0
+        this.writeLine(ctx, "Ranking:")
         this.writeLine(ctx, "Kills")
         for (let index = 0; index < this.kills.length; index++) {
             const v = this.kills[index]

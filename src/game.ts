@@ -166,13 +166,13 @@ export class Game {
         this.touch.onRender2D(this.context)
         // death
         if (!this.alive) {
-            drawText("你死了")
+            drawText("You dead")
         }
         // chat
         this.chat.onRender2D(this.context, this.canvas.width, this.canvas.height)
         // network
         if (!this.network.isConnected()) {
-            drawText("服务器连接丢失")
+            drawText("Server Connection Lost")
         }
     }
 
