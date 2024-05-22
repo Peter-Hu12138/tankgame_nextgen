@@ -1,4 +1,4 @@
-import { Group, Matrix4, Mesh, MeshPhongMaterial, Vector3 } from "three";
+import { Group, Matrix4, Mesh, MeshBasicMaterial, MeshPhongMaterial, MeshStandardMaterial, ShaderMaterial, Vector3 } from "three";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
@@ -57,5 +57,6 @@ export async function loadPlane() {
 }
 
 export async function loadMap() {
-    return await load_obj("map.obj")
+    const obj = await load_obj("map2.obj")
+    return obj.clone()
 }
