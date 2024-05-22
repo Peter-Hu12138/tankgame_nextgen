@@ -1,4 +1,4 @@
-import { AmbientLight, Box3, BufferGeometry, Clock, DirectionalLight, Group, HemisphereLight, MathUtils, Mesh, MeshPhongMaterial, Object3D, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from "three";
+import { AmbientLight, Box3, BufferGeometry, CameraHelper, Clock, Color, DirectionalLight, Fog, Group, HemisphereLight, MathUtils, Mesh, MeshPhongMaterial, MeshStandardMaterial, Object3D, PCFSoftShadowMap, PerspectiveCamera, RepeatWrapping, Scene, ShaderMaterial, TextureLoader, Vector3, WebGLRenderer } from "three";
 import { Ball } from "./ball";
 import { Chat } from "./chat";
 import { Entity } from "./entity";
@@ -70,21 +70,23 @@ export class Game {
         directionalLight.castShadow = true
         directionalLight.shadow.camera.near = 0.01
         directionalLight.shadow.camera.far = 500
-        directionalLight.shadow.camera.right = 60
-        directionalLight.shadow.camera.left = -60
-        directionalLight.shadow.camera.top = 60
-        directionalLight.shadow.camera.bottom = -60
-        directionalLight.shadow.mapSize.width = 1024
-        directionalLight.shadow.mapSize.height = 1024
-        directionalLight.shadow.radius = 4
-        directionalLight.shadow.bias = -0.00006
+        directionalLight.shadow.camera.right = 600
+        directionalLight.shadow.camera.left = -600
+        directionalLight.shadow.camera.top = 600
+        directionalLight.shadow.camera.bottom = -600
+        directionalLight.shadow.mapSize.width = 2048
+        directionalLight.shadow.mapSize.height = 2048
+        directionalLight.intensity = 0.8
         this.scene.add(directionalLight)
 
         const hemisphereLight = new HemisphereLight(0x4488bb, 0x002244, 0.3)
         this.scene.add(hemisphereLight)
 
-        const ambientLight = new AmbientLight(0xa0a0a0, 0.2)
+        const ambientLight = new AmbientLight(0xffffff, 0.2)
         this.scene.add(ambientLight)
+
+        const helper = new CameraHelper(directionalLight.shadow.camera);
+        this.scene.add(helper);
 
         // network
         this.network = new Network(ADDRESS)
@@ -124,13 +126,16 @@ export class Game {
         this.renderer.setPixelRatio(window.devicePixelRatio / 2);
         this.renderer.setSize(window.innerWidth, window.innerHeight)
         this.renderer!.shadowMap.enabled = true
+        this.renderer.shadowMap.type = PCFSoftShadowMap
         document.body.appendChild(this.renderer.domElement)
 
         // map model
         const obj_map = await loadMap()
         this.map = initMap(obj_map)
         this.map.forEach((each) => {
-            const mesh = new Mesh(each, new MeshPhongMaterial())
+            const material = new MeshPhongMaterial();
+            material.color = new Color(0xd9f1ff);
+            const mesh = new Mesh(each, material)
             mesh.castShadow = true
             mesh.receiveShadow = true
             this.scene.add(mesh)
