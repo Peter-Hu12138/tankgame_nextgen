@@ -36,6 +36,7 @@ export class Game {
     public remoteEntities: Array<Entity> = []
 
     private keys = { "w": false, "s": false, "space": false, "c": false, "left": false, "a": false, "d": false, "t": false, "aup": false, "aleft": false, "aright": false, "adown": false }
+    public plane_swap_w_s = false
     public mouseX = 0
     public mouseY = 0
 
@@ -119,7 +120,8 @@ export class Game {
         this.planeModel = await loadPlane()
 
         // renderer
-        this.renderer = new WebGLRenderer()
+        this.renderer = new WebGLRenderer({ antialias: true })
+        this.renderer.setPixelRatio(window.devicePixelRatio / 2);
         this.renderer.setSize(window.innerWidth, window.innerHeight)
         this.renderer!.shadowMap.enabled = true
         document.body.appendChild(this.renderer.domElement)
@@ -246,6 +248,11 @@ export class Game {
         this.touch = new Touch(document.getElementById("2d") as HTMLCanvasElement)
         document.getElementById("btn_touch")?.addEventListener("click", () => {
             this.touch.enable()
+        })
+
+        // plane swap W-S
+        document.getElementById("btn_plane_swap_w_s")?.addEventListener("click", () => {
+            this.plane_swap_w_s = !this.plane_swap_w_s
         })
 
         // game loop

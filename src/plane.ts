@@ -1,8 +1,9 @@
-import { Vector3, Euler, Object3D, Event, Group, Camera, Box3, Quaternion } from "three";
-import { generateUUID } from "three/src/math/MathUtils";
+import { Vector3, Euler, Object3D, Event, Group, Box3, Quaternion } from "three";
+import { generateUUID, degToRad } from "three/src/math/MathUtils";
 import { Ball } from "./ball";
 import { Entity } from "./entity";
 import { game } from "./main";
+import { TPS } from "./game";
 
 const MOVE_SPEED = 0.8
 const SHOT_DELAY = 300
@@ -18,7 +19,7 @@ export class Plane extends Entity {
         super(id)
         this.clientSide = clientSide
         this.model = game.planeModel!.clone()
-        this.model.rotation.reorder("YZX")
+        this.model.rotation.reorder("YXZ")
     }
 
     update(): void {
@@ -45,25 +46,51 @@ export class Plane extends Entity {
             }
         }
 
+        const rotate_w = [
+            [90, 45] /* pitch */,
+            [45, 45] /*yaw*/,
+            [200, 200] /*roll*/
+        ].map((a) => [degToRad(a[0] / TPS), degToRad(a[1]) / TPS])
+
+        let keys = {
+            w: game.getKeys().w,
+            s: game.getKeys().s,
+            aleft: game.getKeys().aleft,
+            aright: game.getKeys().aright,
+            a: game.getKeys().a,
+            d: game.getKeys().d
+        }
+
+        if (game.plane_swap_w_s) {
+            const w = keys.w
+            keys.w = keys.s
+            keys.s = w
+        }
 
         // rotation
-        let euler = new Euler((game.getKeys().w ? 0.06 : 0) + (game.getKeys().s ? -0.04 : 0), 0, (game.getKeys().a ? 0.05 : 0) + (game.getKeys().d ? -0.05 : 0))
+        let euler = new Euler(
+            (keys.w ? rotate_w[0][0] : 0) +
+            (keys.s ? -rotate_w[0][1] : 0),
+            (keys.aleft ? rotate_w[1][0] : 0) +
+            (keys.aright ? -rotate_w[1][1] : 0),
+            (keys.a ? rotate_w[2][0] : 0) +
+            (keys.d ? -rotate_w[2][1] : 0)
+        )
 
         this.rotateByEuler(euler)
     }
 
     updateCamera(): void {
-        const position = this.getPosition()
-        const rotation = this.getRotation()
-
-        // camera position
-        const offset = new Vector3(0, 8, 15)
-        offset.applyMatrix4(this.model.matrix)
-        game.camera.position.copy(offset)
+        let rotation = this.model.rotation.clone()
+        rotation.z = 0
 
         // camera rotation
-        game.camera.setRotationFromQuaternion(this.model.quaternion)
+        game.camera.setRotationFromEuler(rotation)
 
+        // camera position
+        let offset = new Vector3(0, 5, 15)
+        offset = offset.applyEuler(rotation).add(this.model.position)
+        game.camera.position.copy(offset)
     }
 
     getPosition() {
