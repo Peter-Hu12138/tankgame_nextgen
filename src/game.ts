@@ -85,8 +85,8 @@ export class Game {
         const ambientLight = new AmbientLight(0xffffff, 0.2)
         this.scene.add(ambientLight)
 
-        const helper = new CameraHelper(directionalLight.shadow.camera);
-        this.scene.add(helper);
+        // const helper = new CameraHelper(directionalLight.shadow.camera);
+        // this.scene.add(helper);
 
         // network
         this.network = new Network(ADDRESS)
