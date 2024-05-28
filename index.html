@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0" />
   <title>Tank Game Nextgen</title>
 </head>
 
@@ -11,9 +11,9 @@
   <script type="module" src="/src/main.ts"></script>
   <canvas style="position: absolute; margin: 0px;" id="2d"></canvas>
   <div style="position: absolute; width: 100%;">
-    <button style="float: right;" id="btn_name">Set Username</button>
-    <button style="float: right;" id="btn_touch">Touch Screen</button>
-    <button style="float: right;" id="btn_plane_swap_w_s">Swap plane W-S control</button>
+    <button style="float: right;" id="btn_name"></button>
+    <button style="float: right;" id="btn_touch"></button>
+    <button style="float: right;" id="btn_plane_swap_w_s"></button>
   </div>
 </body>
 
@@ -22,6 +22,28 @@
   body {
     overscroll-behavior-y: none;
     overscroll-behavior-x: none;
+    touch-action: pan-x pan-y;
+  }
+
+  * {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+  }
+
+  #btn_name::before {
+    content: "Set Username";
+  }
+  #btn_touch::before {
+    content: "Touch Screen";
+  }
+  #btn_plane_swap_w_s::before {
+    content: "Swap plane W-S control";
+  }
+
+  canvas, body {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
   }
 </style>
 

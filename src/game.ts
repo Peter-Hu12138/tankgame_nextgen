@@ -253,6 +253,9 @@ export class Game {
         this.touch = new Touch(document.getElementById("2d") as HTMLCanvasElement)
         document.getElementById("btn_touch")?.addEventListener("click", () => {
             this.touch.enable()
+        
+            // disable text selection
+            this.renderer!.domElement.onselectstart = () => false
         })
 
         // plane swap W-S
