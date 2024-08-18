@@ -6,7 +6,7 @@ import { game } from "./main";
 import { TPS } from "./game";
 
 const MOVE_SPEED = 0.8
-const SHOT_DELAY = 300
+const SHOT_DELAY = 200
 
 export class Plane extends Entity {
 
@@ -131,15 +131,15 @@ export class Plane extends Entity {
     randomPos() {
         // random spawn point
         while (true) {
-            const box3 = new Box3()
-            game.mapBoundingBoxes!.forEach((each) => box3.union((each)))
+            let theBox = new Box3();
+            theBox.min.set(-155, 13, 135)
+            theBox.max.set(150, 50, -170)
             this.getPosition().set(
-                (box3.max.x - box3.min.x) * Math.random() + box3.min.x,
-                box3.max.y + 30 * Math.random(),
-                (box3.max.z - box3.min.z) * Math.random() + box3.min.z
+                (theBox.max.x - theBox.min.x) * Math.random() + theBox.min.x,
+                theBox.max.y + 50 + 100 * Math.random(),
+                (theBox.max.z - theBox.min.z) * Math.random() + theBox.min.z
             )
-            let bb_tank = this.getBB()
-            if (!this.collisionCheck(bb_tank)) break
+            if (!this.collisionCheck(this.getBB())) break
         }
     }
 

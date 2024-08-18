@@ -1,9 +1,9 @@
-import { Box3, BoxGeometry, Camera, Intersection, Mesh, MeshBasicMaterial, MeshStandardMaterial, Raycaster, ShortType, SphereGeometry, TriangleStripDrawMode, Vector3 } from "three";
+import { Box3, BoxGeometry, Camera, DoubleSide, Intersection, Mesh, MeshBasicMaterial, MeshStandardMaterial, Ray, Raycaster, ShortType, Side, SphereGeometry, TriangleStripDrawMode, Vector3 } from "three";
 import { generateUUID } from "three/src/math/MathUtils";
 import { game } from "./main";
 import { PacketKill, PacketRemoveBall } from "./packets";
 
-const MOVE_SPEED = 1.5
+const MOVE_SPEED = 1
 const MAX_TICKS = 30 * 5
 
 export class Ball {
@@ -35,18 +35,46 @@ export class Ball {
     }
 
     update() {
-        if (this.nextIntersection !== undefined && this.pos.distanceTo(this.nextIntersection.point) < 1) {
-            this.velocity.addScaledVector(this.nextIntersection.face!.normal, - this.nextIntersection.face!.normal.dot(this.velocity) * 2)
-            this.calcReflectPoint()
+        // move 3 times per tick with small movement each move
+        // so collision & intersection detection will not be skipped
+        for (let i = 0; i < 3; i++) {
 
-            if (this.clientSide)
-                game.network.updateClientBall(this)
+            if (this.nextIntersection !== undefined) {
+                let d = this.pos.distanceTo(this.nextIntersection.point);
+                if (d < 5) {
+                    this.velocity.addScaledVector(this.nextIntersection.face!.normal, - this.nextIntersection.face!.normal.dot(this.velocity) * 2)
+                    this.calcReflectPoint()
+        
+                    if (this.clientSide)
+                        game.network.updateClientBall(this)
+                }
+            }
+    
+            this.pos.add(this.velocity)
+            this.mesh.position.copy(this.pos)
+    
+            this.existedTicks++
+
+            // kill
+            if (this.clientSide) {
+                const box3 = new Box3()
+                box3.expandByObject(this.mesh)
+                game.remoteEntities.forEach((remoteEntity) => {
+                    if (remoteEntity.getBB().intersectsBox(box3)) {
+                        game.network.send(new PacketKill(remoteEntity.getId()))
+                        game.ranking.addKill("You")
+                        this.removeSelf()
+                    }
+                })
+                if (this.existedTicks > 5 && game.thePlayer!.getBB().intersectsBox(box3)) {
+                    game.kill()
+                    this.removeSelf()
+                    game.ranking.addDeath("You")
+                }
+            }
         }
-
-        this.pos.add(this.velocity)
-        this.mesh.position.copy(this.pos)
-
-        this.existedTicks++
+        
+        
 
         if (this.existedTicks > MAX_TICKS) {
             if (this.clientSide) {
@@ -58,23 +86,7 @@ export class Ball {
             }
         }
 
-        // kill
-        if (this.clientSide) {
-            const box3 = new Box3()
-            box3.expandByObject(this.mesh)
-            game.remoteEntities.forEach((remoteEntity) => {
-                if (remoteEntity.getBB().intersectsBox(box3)) {
-                    game.network.send(new PacketKill(remoteEntity.getId()))
-                    game.ranking.addKill("You")
-                    this.removeSelf()
-                }
-            })
-            if (this.existedTicks > 5 && game.thePlayer!.getBB().intersectsBox(box3)) {
-                game.kill()
-                this.removeSelf()
-                game.ranking.addDeath("You")
-            }
-        }
+        
     }
 
     removeSelf() {
@@ -84,13 +96,10 @@ export class Ball {
     }
 
     calcReflectPoint() {
-        const raycaster = new Raycaster()
-
-        raycaster.set(this.pos, this.velocity.clone().normalize())
-        const intersections = raycaster.intersectObjects(game.mapObjects)
-        if (intersections.length >= 1) {
-            const closest = intersections[0]
-            this.nextIntersection = closest
+        const intersection = game.map!.raycastFirst(new Ray(this.pos, this.velocity.clone().normalize()), DoubleSide);
+        
+        if (intersection.distance < 3000) {
+            this.nextIntersection = intersection
         } else {
             this.nextIntersection = undefined
         }

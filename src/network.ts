@@ -236,4 +236,10 @@ export class Network {
         return this.connected
     }
 
+    
+    public getId() : string {
+        return this.id
+    }
+    
+
 }

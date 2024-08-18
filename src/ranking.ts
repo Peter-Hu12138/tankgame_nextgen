@@ -37,8 +37,8 @@ export class Ranking {
     update() {
         this.existedTicks++
         if (this.existedTicks % 10 === 0) {
-            this.kills.sort((a, b) => a.value - b.value)
-            this.death.sort((a, b) => a.value - b.value)
+            this.kills.sort((a, b) => b.value - a.value)
+            this.death.sort((a, b) => b.value - a.value)
         }
     }
 

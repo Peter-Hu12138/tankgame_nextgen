@@ -1,4 +1,4 @@
-import { Box3, Euler, Object3D, Vector3 } from "three";
+import { Box3, Euler, Matrix4, Object3D, Vector3 } from "three";
 import { game } from "./main";
 
 export abstract class Entity {
@@ -32,15 +32,16 @@ export abstract class Entity {
     }
 
     collisionCheck(bb_tank: Box3) {
-        let collide = false
-        for (let index = 0; index < game.mapBoundingBoxes!.length; index++) {
-            const each = game.mapBoundingBoxes![index];
-            if (each.intersectsBox(bb_tank)) {
-                collide = true
-                break
-            }
-        }
-        return collide
+        return game.map!.intersectsBox(bb_tank, new Matrix4().identity())
+        // let collide = false
+        // for (let index = 0; index < game.mapBoundingBoxes!.length; index++) {
+        //     const each = game.mapBoundingBoxes![index];
+        //     if (each.intersectsBox(bb_tank)) {
+        //         collide = true
+        //         break
+        //     }
+        // }
+        // return collide
     }
 
 

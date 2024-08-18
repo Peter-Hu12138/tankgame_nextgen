@@ -57,6 +57,6 @@ export async function loadPlane() {
 }
 
 export async function loadMap() {
-    const obj = await load_obj("map2.obj")
+    const obj = await laod_glft("map3.glb")
     return obj.clone()
 }

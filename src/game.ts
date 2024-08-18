@@ -1,4 +1,4 @@
-import { AmbientLight, Box3, BufferGeometry, CameraHelper, Clock, Color, DirectionalLight, Fog, Group, HemisphereLight, MathUtils, Mesh, MeshPhongMaterial, MeshStandardMaterial, Object3D, PCFSoftShadowMap, PerspectiveCamera, RepeatWrapping, Scene, ShaderMaterial, TextureLoader, Vector3, WebGLRenderer } from "three";
+import { AmbientLight, Box3, BufferGeometry, CameraHelper, Clock, Color, DirectionalLight, Fog, Group, HemisphereLight, MathUtils, Mesh, MeshPhongMaterial, MeshStandardMaterial, Object3D, PCFSoftShadowMap, PerspectiveCamera, RepeatWrapping, Scene, ShaderMaterial, TextureLoader, Vector3, VSMShadowMap, WebGLRenderer } from "three";
 import { Ball } from "./ball";
 import { Chat } from "./chat";
 import { Entity } from "./entity";
@@ -11,11 +11,13 @@ import { Ranking } from "./ranking";
 import { Tank } from "./tank";
 import { Sky } from "three/examples/jsm/objects/Sky"
 import { Touch } from "./touch";
+import { MeshBVH, StaticGeometryGenerator } from "three-mesh-bvh";
 
 export const TPS = 30
 export const MOVE_SPEED = 0.5
 export const GRAVITY = -0.5
-const ADDRESS = location.hostname === "localhost" ? `ws://${location.hostname}:8080` : `wss://${location.host}/tankgamews`
+const ADDRESS = location.protocol === "http:" ? `ws://${location.host}/tankgamews` : `wss://${location.host}/tankgamews`
+//const ADDRESS = location.hostname === "localhost" ? `ws://${location.hostname}:8080` : `wss://${location.host}/tankgamews`
 //const ADDRESS = `ws://${location.hostname}:8080`
 const BALL_DELAY = 500
 const RESPAWN = 3000
@@ -30,6 +32,7 @@ export class Game {
     public tankModelTop: Group | undefined
     public planeModel: Group | undefined
     private renderer: WebGLRenderer | undefined
+    private debug = false;
 
     public alive = true
     public thePlayer: Entity | undefined
@@ -39,10 +42,6 @@ export class Game {
     public plane_swap_w_s = false
     public mouseX = 0
     public mouseY = 0
-
-    public map: Array<BufferGeometry> | undefined
-    public mapBoundingBoxes: Array<Box3> | undefined
-    public mapObjects: Array<Object3D> = []
 
     public balls: Array<Ball> = []
     public remoteBalls: Array<Ball> = []
@@ -56,6 +55,8 @@ export class Game {
     public name = "undefined"
 
     public chat = new Chat()
+
+    public map?: MeshBVH
 
     private touch!: Touch
 
@@ -126,22 +127,20 @@ export class Game {
         this.renderer.setPixelRatio(window.devicePixelRatio / 2);
         this.renderer.setSize(window.innerWidth, window.innerHeight)
         this.renderer!.shadowMap.enabled = true
-        this.renderer.shadowMap.type = PCFSoftShadowMap
+        this.renderer.shadowMap.type = VSMShadowMap
         document.body.appendChild(this.renderer.domElement)
 
         // map model
         const obj_map = await loadMap()
-        this.map = initMap(obj_map)
-        this.map.forEach((each) => {
-            const material = new MeshPhongMaterial();
-            material.color = new Color(0xd9f1ff);
-            const mesh = new Mesh(each, material)
-            mesh.castShadow = true
-            mesh.receiveShadow = true
-            this.scene.add(mesh)
-            this.mapObjects.push(mesh)
-        })
-        this.mapBoundingBoxes = initBoundingBoxes(this.map)
+        this.scene.add(...obj_map.children)
+
+        // collision
+        // https://github.com/gkjohnson/three-mesh-bvh/blob/22ef9cc10eccf073e9c66127a9e93b1499ff8bf6/example/physics.js
+        this.scene.updateMatrixWorld(true)
+        const staticGenerator = new StaticGeometryGenerator(this.scene.children)
+		staticGenerator.attributes = ["position"]
+        const mergedGeometry = staticGenerator.generate()
+        this.map = mergedGeometry.computeBoundsTree()
     }
 
     onRender() {
@@ -180,6 +179,24 @@ export class Game {
         // network
         if (!this.network.isConnected()) {
             drawText("Server Connection Lost")
+        }
+
+        // debug
+        if (this.debug) {
+            let y = 50;
+            let drawDebugText = (text: string) => {
+                this.context.font = '20px Arial'
+                this.context.fillStyle = "#000000ff"
+                this.context.fillText(text, 200, y)
+                y += this.context.measureText(text).actualBoundingBoxAscent + 2
+            }
+            drawDebugText("DEBUG")
+            let bb = this.thePlayer?.getBB()
+            drawDebugText("=> PLAYER BB")
+            drawDebugText(`${bb?.min.x},${bb?.min.y},${bb?.min.z}`)
+            drawDebugText(`${bb?.max.x},${bb?.max.y},${bb?.max.z}`)
+            drawDebugText("=> UUID")
+            drawDebugText(this.network.getId())
         }
     }
 
@@ -221,6 +238,10 @@ export class Game {
         document.body.addEventListener("keydown", (e) => {
             updateKeys(e, true)
             this.chat.onKeyPress(e)
+            if (e.key === "F3") {
+                this.debug = !this.debug;
+                e.preventDefault();
+            }
         })
         document.body.addEventListener("keyup", (e) => {
             updateKeys(e, false)
@@ -310,6 +331,9 @@ export class Game {
         if (this.alive && (this.keys.space || this.keys.left)) {
             this.thePlayer!.shot()
         }
+
+        // ranking
+        this.ranking.update()
 
         this.mouseX = 0
         this.mouseY = 0
