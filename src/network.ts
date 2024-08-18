@@ -203,7 +203,7 @@ export class Network {
         game.remoteEntities = game.remoteEntities.filter((t) => {
             let valid = this.existedTicks - t.lastUpdate < TIMEOUT
             if (!valid) {
-                game.scene.remove(t.getModel())
+                t.removeEntity()
             }
             return valid
         })
